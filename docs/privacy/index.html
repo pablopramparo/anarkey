@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anarkey privacy policy</title>
+<style>
+  :root { color-scheme: light dark; --bg: #fff; --fg: #1d1b1a; --muted: #5c5650; --accent: #c85a00; --line: #e3dfda; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0c0c0e; --fg: #f3f0eb; --muted: #b0aaa4; --accent: #ffa34d; --line: #39322c; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 42rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  h1 { font-size: 1.8rem; margin: 0 0 .25rem; }
+  h2 { font-size: 1.15rem; margin: 2rem 0 .5rem; color: var(--accent); }
+  p, li { margin: .4rem 0; }
+  .muted { color: var(--muted); font-size: .9rem; }
+  .summary { border: 1px solid var(--line); border-left: 4px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; border-radius: 6px; }
+  a { color: var(--accent); }
+  nav { margin-bottom: 1rem; font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+<nav><a href="es/">Versión en español</a></nav>
+<h1>Anarkey privacy policy</h1>
+<p class="muted">Last updated: 8 October 2026</p>
+
+<div class="summary">
+  <strong>In short:</strong> Anarkey does not collect, share or sell personal data. It has no accounts, ads,
+  analytics or tracking, and it does not use the Internet permission, so it has no way to send anything off your device.
+</div>
+
+<h2>Microphone</h2>
+<p>The tuner analyses sound from the microphone in real time to find the pitch. That audio is processed on your
+device and is neither saved nor sent anywhere. The recorder saves audio on your device only when you start a recording.</p>
+
+<h2>What is stored on your device</h2>
+<ul>
+  <li>Your recordings, recording sessions and markers.</li>
+  <li>Your songs, notes, chords and favourite chord shapes.</li>
+  <li>Your preferences: language, reference pitch, note names and metronome settings.</li>
+</ul>
+<p>All of this stays in the app's private storage. The app turns off Android cloud backup and device-to-device transfer
+for it, so it is not copied to your Google account or to a new phone. You can delete recordings and songs inside the app,
+and uninstalling the app removes everything.</p>
+
+<h2>What you choose to share</h2>
+<p>If you use Share or Export on a recording, Android hands the file to the app or folder you pick. Anarkey does not
+control what that app or service does with it.</p>
+
+<h2>Permissions the app asks for</h2>
+<ul>
+  <li><strong>Microphone</strong>: for the tuner and the recorder.</li>
+  <li><strong>Foreground service</strong> (microphone and media playback): so a recording or the metronome keeps working
+  when the screen is off, shown with a visible notification.</li>
+  <li><strong>Wake lock</strong>: so the metronome keeps its timing while the screen is off.</li>
+  <li><strong>Notifications</strong>: to show that notification.</li>
+</ul>
+<p>The app does not ask for Internet, location, contacts, camera, storage or any other permission.</p>
+
+<h2>Third parties</h2>
+<p>Anarkey includes no advertising, analytics or crash-reporting libraries. It is free and open-source software built with
+open-source libraries that do not send data. The source code is public on
+<a href="https://github.com/pablopramparo/anarkey">GitHub</a>, so any of this can be checked.</p>
+
+<h2>Children</h2>
+<p>Anarkey is not directed at children, and because it collects no personal data from anyone, it collects none from children.</p>
+
+<h2>Developer builds</h2>
+<p>Test builds for developers can save a diagnostic audio file on the device when the developer asks for it. This feature is
+not present in the version distributed to the public.</p>
+
+<h2>Changes to this policy</h2>
+<p>If this policy changes, the new version will be published at this address with a new date.</p>
+
+<h2>Contact</h2>
+<p>Questions about privacy can be sent by opening an issue in the
+<a href="https://github.com/pablopramparo/anarkey/issues">project repository</a>.</p>
+</main>
+</body>
+</html>

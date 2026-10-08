@@ -1,0 +1,25 @@
+.gradle/
+**/build/
+local.properties
+.idea/
+*.iml
+.reference/
+.tools/
+.kotlin/
+
+# Keys and local build output: never published
+signing/
+dist/
+
+# Personal recordings and working screenshots (those the docs link to live in docs/screenshots)
+/anarkey-last-audio.wav
+/anarkey-ui.png
+/diagnostics/
+
+# Design sources: only the final brand PNGs that tools/prepare-brand-assets.ps1 reads are published
+/design-assets/*
+!/design-assets/anarkey_ico.png
+!/design-assets/anarkey_iso.png
+!/design-assets/anarkey_logo.png
+!/design-assets/anarkey_logo_slogan.png
+

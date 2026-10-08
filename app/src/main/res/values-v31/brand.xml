@@ -1,0 +1,8 @@
+<resources>
+    <style name="AppTheme.Launch" parent="AppTheme">
+        <item name="android:windowBackground">@color/brand_background</item>
+        <item name="android:windowSplashScreenBackground">@color/brand_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/brand_splash_icon</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/brand_splash_wordmark</item>
+    </style>
+</resources>
