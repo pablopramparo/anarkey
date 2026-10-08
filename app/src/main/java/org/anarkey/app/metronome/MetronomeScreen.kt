@@ -1,6 +1,11 @@
 package org.anarkey.app.metronome
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.SystemClock
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -29,7 +34,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.anarkey.app.R
 import org.anarkey.app.ui.*
@@ -57,6 +64,13 @@ fun MetronomeScreen(
     var showSettings by rememberSaveable(contextKey) { mutableStateOf(false) }
     val tapTempo = remember(contextKey) { TapTempoCalculator() }
     val view = LocalView.current
+    val context = LocalContext.current
+    // On Android 13+ the notification of the foreground service stays hidden until this permission is granted.
+    // The metronome plays either way, so the request never blocks starting it. A service that is already running
+    // does not show its notification when the permission arrives later, so it is posted again at that point.
+    val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted && model.playback.value.isPlaying) MetronomeService.start(context)
+    }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(loadedPreferences, contextKey) {
@@ -223,7 +237,13 @@ fun MetronomeScreen(
         Button(
             shape = AppShape,
             onClick = {
-                if (playback.isPlaying) model.stop() else { showSettings = false; model.start(settings) }
+                if (playback.isPlaying) model.stop() else {
+                    showSettings = false
+                    if (Build.VERSION.SDK_INT >= 33 &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                    ) askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    model.start(settings)
+                }
             },
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
         ) {
