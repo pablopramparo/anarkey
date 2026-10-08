@@ -91,6 +91,32 @@ El audio se procesa en tu dispositivo y nunca se sube. Tus grabaciones y cancion
 Anarkey es una versión temprana. El código fuente es público y se agradecen los comentarios.
 ```
 
+## Foreground service declarations (Play Console → App content)
+
+Google asks for a description, the impact if the task is interrupted, and a link to a video for each
+foreground service type. The videos are not stored in the repository; they are 1080x2400 screen recordings of
+the release build. Upload them (for example as unlisted videos) and paste the links.
+
+### Microphone (`RecordingService`, type `microphone`)
+
+- **What the feature does:** Anarkey's audio recorder. When the user taps Record, the app captures audio from the
+  microphone and keeps recording if the user switches to another tool, opens the notification shade or locks the
+  screen. A persistent notification ("Anarkey está grabando") with a Stop action is shown for the whole recording,
+  and Android shows its microphone indicator.
+- **Impact if deferred or interrupted:** The recording stops and the rest of the take is lost. Rehearsals and ideas
+  are often several minutes long and are recorded with the phone on a stand or in a pocket, so the user would only
+  notice later.
+- **Video steps:** Home → Recorder → Record → switch to Chords while recording → open the notification shade →
+  expand the notification → Stop → the recording appears saved in the Recorder.
+
+### Media playback (`MetronomeService`, type `mediaPlayback`)
+
+- **What the feature does:** The metronome. It generates click sounds and keeps playing when the user switches app
+  or turns the screen off, with a notification ("Metrónomo sonando") that has a Stop action.
+- **Impact if deferred or interrupted:** The clicks stop, so a musician practising with the phone on a music stand
+  or in a pocket loses the tempo reference in the middle of the exercise.
+- **Video steps:** Home → Metronome → Start → open the notification shade → expand the notification → Stop.
+
 ## How the screenshots were taken
 
 Google rejects screenshots whose long side is more than twice the short one, and the test phone is 20:9.
