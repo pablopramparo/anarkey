@@ -32,25 +32,25 @@ Full description (1115/4000):
 ```
 Anarkey is a free, open-source set of tools for musicians. No ads, no accounts, no tracking, and it works offline: it does not even ask for Internet permission.
 
-TUNER
+Tuner
 • Guitar, bass, ukulele, violin, mandolin and banjo, plus a chromatic mode.
 • Shows the note, the cents and the string you are tuning. Reference pitch from 400 to 480 Hz.
 • Note names as letters (C D E) or solfège (Do Re Mi), with sharps or flats.
 
-CHORDS
+Chords
 • Diagrams for guitar, ukulele, mandolin, banjo and bass, in beginner or advanced mode.
 • Tap a diagram to hear the chord. Save your favourite shapes. Left-handed view.
 
-SONGS
+Songs
 • Keep your songs with chords, notes and recordings in one place, and transpose them.
 
-RECORDER
+Recorder
 • Record your ideas and rehearsals, even with the screen off. Add markers and group takes in sessions.
 
-METRONOME
+Metronome
 • Tempo, time signatures (2/4, 3/4, 4/4, 6/8), accents and sounds. It keeps playing with the screen off.
 
-PRIVATE BY DESIGN
+Private by design
 Audio is processed on your device and never uploaded. Your recordings and songs stay on your phone.
 
 Anarkey is an early version. The source code is public, and feedback is welcome.
@@ -67,25 +67,25 @@ Descripción completa (1214/4000):
 ```
 Anarkey es un conjunto gratuito y de código abierto de herramientas para músicos. Sin anuncios, sin cuentas, sin seguimiento y funciona sin conexión: ni siquiera pide el permiso de Internet.
 
-AFINADOR
+Afinador
 • Guitarra, bajo, ukelele, violín, mandolina y banjo, más un modo cromático.
 • Muestra la nota, los cents y la cuerda que estás afinando. Frecuencia de referencia de 400 a 480 Hz.
 • Nombres de notas en letras (C D E) o solfeo (Do Re Mi), con sostenidos o bemoles.
 
-ACORDES
+Acordes
 • Diagramas para guitarra, ukelele, mandolina, banjo y bajo, en modo principiante o avanzado.
 • Tocá un diagrama para escuchar el acorde. Guardá tus digitaciones favoritas. Vista para zurdos.
 
-CANCIONES
+Canciones
 • Guardá tus canciones con acordes, notas y grabaciones en un solo lugar, y transportalas.
 
-GRABADOR
+Grabador
 • Grabá tus ideas y ensayos, incluso con la pantalla apagada. Agregá marcadores y agrupá tomas en sesiones.
 
-METRÓNOMO
+Metrónomo
 • Tempo, compases (2/4, 3/4, 4/4, 6/8), acentos y sonidos. Sigue sonando con la pantalla apagada.
 
-PRIVADA POR DISEÑO
+Privada por diseño
 El audio se procesa en tu dispositivo y nunca se sube. Tus grabaciones y canciones quedan en tu teléfono.
 
 Anarkey es una versión temprana. El código fuente es público y se agradecen los comentarios.
