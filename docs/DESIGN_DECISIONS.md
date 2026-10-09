@@ -107,6 +107,20 @@ milestone live in the `M*_IMPLEMENTATION.md` files; provenance and DSP research 
 
 ## 9. How decisions are recorded
 
+### Public website (October 2026)
+
+The GitHub Pages landing page stays a buildless static site in `docs/`, with a dark
+palette, orange accents, locally hosted Space Grotesk (OFL) and actual app screenshots.
+The brand slogan is **FREE THE MUSIC**; the README's "Not your wallet" line is not
+part of the website slogan.
+The header and footer use the complete `design-assets/anarkey_logo_slogan.png`
+artwork, including its slogan, rather than recreating the wordmark with text.
+Spanish is the default, with an English switch that also
+changes screenshot language and supports `?lang=en` links. No external fonts,
+tracking, or dependencies are required. Existing privacy-policy URLs stay unchanged.
+The primary links lead to the tools and source repository; no store availability or
+download is advertised without a confirmed release destination.
+
 Prefer small classes, explicit behaviour, tests, few dependencies and data-driven configuration.
 Avoid frameworks for their own sake, abstractions without a second user, and clever code that is
 hard to debug. When a decision changes, mark the old one as superseded and say why, rather than
