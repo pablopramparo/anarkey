@@ -120,7 +120,7 @@ The app itself contains no donation links. Support lives here on GitHub.
 
 ## License and credits
 
-Anarkey is licensed under MIT.
+Anarkey's code is licensed under MIT. The name and the logo are not: see [design-assets/README.md](design-assets/README.md) before reusing them in a fork.
 
 YIN is adapted from Tunify under MIT, with preserved [third-party notices](THIRD_PARTY_NOTICES.md).
 
