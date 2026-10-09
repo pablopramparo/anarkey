@@ -115,6 +115,8 @@ The brand slogan is **FREE THE MUSIC**; the README's "Not your wallet" line is n
 part of the website slogan.
 The header and footer use the complete `design-assets/anarkey_logo_slogan.png`
 artwork, including its slogan, rather than recreating the wordmark with text.
+The favicon uses the transparent `design-assets/anarkey_iso.png` isotype, so the
+browser tab does not show the app icon's solid background.
 Spanish is the default, with an English switch that also
 changes screenshot language and supports `?lang=en` links. No external fonts,
 tracking, or dependencies are required. Existing privacy-policy URLs stay unchanged.
