@@ -1,3 +1,18 @@
+// Set google-play-url in index.html when the public store listing is available.
+const playUrl = document.querySelector('meta[name="google-play-url"]').content.trim();
+if (playUrl && URL.canParse(playUrl)) {
+  const url = new URL(playUrl);
+  if (url.protocol === 'https:' && url.hostname === 'play.google.com' && url.pathname === '/store/apps/details') {
+    document.querySelectorAll('[data-google-play]').forEach(link => {
+      link.href = url.href;
+      link.removeAttribute('aria-disabled');
+      const label = link.querySelector('span');
+      label.textContent = 'Descargar en Google Play';
+      label.dataset.en = 'Get it on Google Play';
+    });
+  }
+}
+
 const languageButton = document.querySelector('#language');
 const translated = [...document.querySelectorAll('[data-en]')];
 const screenshots = [...document.querySelectorAll('[data-screen]')];

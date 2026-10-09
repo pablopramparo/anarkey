@@ -121,7 +121,10 @@ Spanish is the default, with an English switch that also
 changes screenshot language and supports `?lang=en` links. No external fonts,
 tracking, or dependencies are required. Existing privacy-policy URLs stay unchanged.
 The primary links lead to the tools and source repository; no store availability or
-download is advertised without a confirmed release destination.
+download is advertised without a confirmed release destination. The landing page
+has a bilingual "Coming soon on Google Play" placeholder. Once the public listing
+is available, set the `google-play-url` meta tag in `docs/index.html` to its HTTPS
+Google Play app-details URL; the placeholder becomes the download link.
 
 Prefer small classes, explicit behaviour, tests, few dependencies and data-driven configuration.
 Avoid frameworks for their own sake, abstractions without a second user, and clever code that is
