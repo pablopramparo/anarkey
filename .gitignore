@@ -24,3 +24,7 @@ dist/
 !/design-assets/anarkey_logo_slogan.png
 !/design-assets/README.md
 
+
+# Working screenshots from development; retaken before each store release (docs/ is served by GitHub Pages)
+docs/screenshots/song_detail/
+docs/screenshots/song_polish/
