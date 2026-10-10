@@ -3,8 +3,8 @@
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowBackground">@color/brand_background</item>
-        <item name="android:statusBarColor">@color/brand_background</item>
-        <item name="android:navigationBarColor">@color/brand_background</item>
+        <!-- statusBarColor and navigationBarColor are deprecated and ignored from Android 15; MainActivity styles the
+             bars with enableEdgeToEdge(). -->
         <item name="android:colorAccent">@color/brand_orange</item>
     </style>
 </resources>
