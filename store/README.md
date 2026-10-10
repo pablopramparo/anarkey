@@ -27,7 +27,7 @@ Short description (73/80):
 
 > Free music tools: tuner, recorder, chords and metronome. No ads, offline.
 
-Full description (1115/4000):
+Full description (1339/4000):
 
 ```
 Anarkey is a free, open-source set of tools for musicians. No ads, no accounts, no tracking, and it works offline: it does not even ask for Internet permission.
@@ -38,11 +38,13 @@ Tuner
 • Note names as letters (C D E) or solfège (Do Re Mi), with sharps or flats.
 
 Chords
-• Diagrams for guitar, ukulele, mandolin, banjo and bass, in beginner or advanced mode.
+• Diagrams for guitar, ukulele, mandolin, banjo and bass, plus a piano keyboard, in beginner or advanced mode.
 • Tap a diagram to hear the chord. Save your favourite shapes. Left-handed view.
 
 Songs
-• Keep your songs with chords, notes and recordings in one place, and transpose them.
+• Keep your songs with lyrics, chords and linked recordings, write notes and rests with note values, and transpose them.
+• Play the chords in order with the lyric highlighted. Each song remembers its instrument.
+• Import and share songs as ChordPro files, or as a complete Anarkey copy.
 
 Recorder
 • Record your ideas and rehearsals, even with the screen off. Add markers and group takes in sessions.
@@ -62,7 +64,7 @@ Descripción corta (71/80):
 
 > Herramientas musicales gratis: afinador, grabador, acordes y metrónomo.
 
-Descripción completa (1214/4000):
+Descripción completa (1446/4000):
 
 ```
 Anarkey es un conjunto gratuito y de código abierto de herramientas para músicos. Sin anuncios, sin cuentas, sin seguimiento y funciona sin conexión: ni siquiera pide el permiso de Internet.
@@ -73,11 +75,13 @@ Afinador
 • Nombres de notas en letras (C D E) o solfeo (Do Re Mi), con sostenidos o bemoles.
 
 Acordes
-• Diagramas para guitarra, ukelele, mandolina, banjo y bajo, en modo principiante o avanzado.
+• Diagramas para guitarra, ukelele, mandolina, banjo y bajo, y un teclado de piano, en modo principiante o avanzado.
 • Tocá un diagrama para escuchar el acorde. Guardá tus digitaciones favoritas. Vista para zurdos.
 
 Canciones
-• Guardá tus canciones con acordes, notas y grabaciones en un solo lugar, y transportalas.
+• Guardá tus canciones con letra, acordes y grabaciones vinculadas, escribí notas y silencios con sus figuras, y transportalas.
+• Reproducí los acordes en orden con la letra resaltada. Cada canción recuerda su instrumento.
+• Importá y compartí canciones en ChordPro o como copia completa de Anarkey.
 
 Grabador
 • Grabá tus ideas y ensayos, incluso con la pantalla apagada. Agregá marcadores y agrupá tomas en sesiones.

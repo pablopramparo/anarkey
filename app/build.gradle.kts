@@ -14,8 +14,8 @@ android {
         applicationId = "org.anarkey.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 14
-        versionName = "0.1.0-prototype"
+        versionCode = 16
+        versionName = "0.2.1-prototype"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures {
@@ -42,6 +42,11 @@ android {
             keyAlias = signingProperties.getProperty("keyAlias")
             keyPassword = signingProperties.getProperty("keyPassword")
         }
+    }
+    // The app has its own language switch (LocaleManager). With the default per-language splits Google Play
+    // would only deliver the device language, and switching to the other one would find no strings.
+    bundle {
+        language { enableSplit = false }
     }
     buildTypes {
         debug {
