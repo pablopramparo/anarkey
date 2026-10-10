@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.AnnotatedString
@@ -75,6 +76,13 @@ internal fun TunerScreen(
     val selectedTarget = tuning?.strings?.getOrNull(selectedStringIndex)?.let { Note(it.midi) }
     val selectedTargetFrequency = selectedTarget?.let { PitchMath.frequency(it, configuration.a4Hz) }
     SideEffect { setTargetFrequency(selectedTargetFrequency) }
+    // Tuning is hands-off while the instrument is played: keep the screen awake only while listening.
+    val view = LocalView.current
+    val listening = state.status == CaptureStatus.RUNNING
+    DisposableEffect(view, listening) {
+        view.keepScreenOn = listening
+        onDispose { view.keepScreenOn = false }
+    }
     val tuner = state.frame?.tuner
     val noteNames = noteNames(naming)
     val stablePitch = tuner?.takeIf {
