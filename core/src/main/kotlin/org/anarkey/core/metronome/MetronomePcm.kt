@@ -113,20 +113,64 @@ class MetronomePcmGenerator(private val sampleRate: Int, settings: MetronomeSett
     private var primary = ShortArray(0)
     private var secondary = ShortArray(0)
     private var normal = ShortArray(0)
+    private var accumulator = IntArray(0)
+    private val voiceSamples = arrayOfNulls<ShortArray>(MAX_VOICES)
+    private val voicePosition = IntArray(MAX_VOICES)
 
     fun updateAtNextPulse(settings: MetronomeSettings) = planner.updateAtNextPulse(settings)
 
+    /**
+     * Fills the next block. A click is usually longer than a block (blocks are a few milliseconds), so whatever
+     * does not fit keeps sounding in the following blocks as a "voice"; dropping it would cut every sound short.
+     */
     fun render(destination: ShortArray) {
-        destination.fill(0)
+        if (accumulator.size < destination.size) accumulator = IntArray(destination.size)
+        accumulator.fill(0, 0, destination.size)
         val blockStart = frameCursor
         val blockEnd = blockStart + destination.size
+        for (voice in 0 until MAX_VOICES) {
+            val samples = voiceSamples[voice] ?: continue
+            val position = voicePosition[voice]
+            val written = mix(destination.size, 0, samples, position)
+            if (position + written >= samples.size) voiceSamples[voice] = null else voicePosition[voice] = position + written
+        }
         while (planner.nextPulseFrame < blockEnd) {
             val event = planner.nextPulse()
             ensureSamples(event.sound, event.volume)
             remember(event.frame, event.beatInBar)
-            mixClick(destination, (event.frame - blockStart).toInt(), samplesFor(event.accent))
+            val click = samplesFor(event.accent)
+            val written = mix(destination.size, (event.frame - blockStart).toInt(), click, 0)
+            if (written < click.size) startVoice(click, written)
+        }
+        for (index in destination.indices) {
+            val mixed = accumulator[index]
+            // Above the knee a sum is compressed rather than clipped, so overlapping rings stay smooth.
+            val magnitude = kotlin.math.abs(mixed)
+            val limited = if (magnitude > KNEE) (KNEE + (magnitude - KNEE) * 2 / 5) * (if (mixed < 0) -1 else 1) else mixed
+            destination[index] = limited.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
         }
         frameCursor = blockEnd
+    }
+
+    /** Adds [click] from [from] into the block starting at [offset]; returns how many samples fitted. */
+    private fun mix(blockSize: Int, offset: Int, click: ShortArray, from: Int): Int {
+        val count = minOf(click.size - from, blockSize - offset)
+        for (index in 0 until count) accumulator[offset + index] += click[from + index].toInt()
+        return count.coerceAtLeast(0)
+    }
+
+    /** Keeps a click ringing into later blocks; with no free slot the one closest to its end gives way. */
+    private fun startVoice(click: ShortArray, position: Int) {
+        var slot = -1
+        var mostPlayed = -1.0
+        for (voice in 0 until MAX_VOICES) {
+            val samples = voiceSamples[voice]
+            if (samples == null) { slot = voice; break }
+            val played = voicePosition[voice].toDouble() / samples.size
+            if (played > mostPlayed) { mostPlayed = played; slot = voice }
+        }
+        voiceSamples[slot] = click
+        voicePosition[slot] = position
     }
 
     /** Returns the beat whose scheduled output frame is at or before the played frame, or -1. */
@@ -163,36 +207,100 @@ class MetronomePcmGenerator(private val sampleRate: Int, settings: MetronomeSett
         Accent.NORMAL -> normal
     }
 
-    private fun mixClick(destination: ShortArray, offset: Int, click: ShortArray) {
-        val count = minOf(click.size, destination.size - offset)
-        for (index in 0 until count) {
-            val mixed = destination[offset + index].toInt() + click[index].toInt()
-            destination[offset + index] = mixed.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+    /**
+     * Each sound has its own length and character, not just a different overtone on the same tick:
+     * wood is a short, low "tok" with a noise attack; digital is a gated beep (odd harmonics, flat level);
+     * bell is a hand bell on the accented beats only, with the wooden tick on the others.
+     * All are scaled to the same peak, so changing the sound changes the timbre and not the loudness.
+     */
+    private fun makeClick(sound: ClickSound, volume: Float, accent: Accent): ShortArray {
+        val accentGain = when (accent) { Accent.PRIMARY -> 0.95; Accent.SECONDARY -> 0.72; Accent.NORMAL -> 0.5 }
+        val base = when (accent) { Accent.PRIMARY -> 1_760.0; Accent.SECONDARY -> 1_320.0; Accent.NORMAL -> 880.0 }
+        val raw = when (sound) {
+            ClickSound.WOOD -> woodClick(base)
+            ClickSound.DIGITAL -> digitalClick(base)
+            // As on a mechanical metronome, the bell marks the accented beats and the rest are the wooden tick.
+            ClickSound.BELL -> if (accent == Accent.NORMAL) woodClick(base) else bellClick(if (accent == Accent.PRIMARY) 1_175.0 else 1_046.0)
+        }
+        val loudest = raw.maxOf { kotlin.math.abs(it) }.takeIf { it > 0.0 } ?: 1.0
+        val scale = Short.MAX_VALUE * volume * accentGain / loudest
+        return ShortArray(raw.size) { (raw[it] * scale).toInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort() }
+    }
+
+    private fun woodClick(base: Double): DoubleArray {
+        val f = base * 0.55
+        var noise = 0x2545F491
+        return DoubleArray((sampleRate * 0.045).roundToInt()) { index ->
+            val t = index.toDouble() / sampleRate
+            noise = noise xor (noise shl 13); noise = noise xor (noise ushr 17); noise = noise xor (noise shl 5)
+            val hiss = (noise.toDouble() / Int.MAX_VALUE) * exp(-900.0 * t) * 0.8
+            sin(2.0 * PI * f * t) * exp(-110.0 * t) +
+                0.55 * sin(2.0 * PI * f * 2.32 * t) * exp(-160.0 * t) +
+                0.3 * sin(2.0 * PI * f * 3.9 * t) * exp(-220.0 * t) + hiss
         }
     }
 
-    private fun makeClick(sound: ClickSound, volume: Float, accent: Accent): ShortArray {
-        val frames = (sampleRate * CLICK_MILLISECONDS / 1_000.0).roundToInt()
-        val accentGain = when (accent) { Accent.PRIMARY -> 0.95; Accent.SECONDARY -> 0.72; Accent.NORMAL -> 0.5 }
-        val frequency = when (accent) { Accent.PRIMARY -> 1_760.0; Accent.SECONDARY -> 1_320.0; Accent.NORMAL -> 880.0 }
-        val decay = when (sound) { ClickSound.WOOD -> 180.0; ClickSound.DIGITAL -> 105.0; ClickSound.BELL -> 70.0 }
-        val amplitude = Short.MAX_VALUE * volume * accentGain
-        return ShortArray(frames) { index ->
-            val seconds = index.toDouble() / sampleRate
-            val fundamental = sin(2.0 * PI * frequency * seconds)
-            val overtone = when (sound) {
-                ClickSound.WOOD -> 0.42 * sin(2.0 * PI * frequency * 2.7 * seconds)
-                ClickSound.DIGITAL -> 0.16 * sin(2.0 * PI * frequency * 3.0 * seconds)
-                ClickSound.BELL -> 0.55 * sin(2.0 * PI * frequency * 2.0 * seconds)
-            }
-            ((fundamental + overtone) * exp(-decay * seconds) * amplitude).toInt()
-                .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+    private fun digitalClick(base: Double): DoubleArray {
+        val seconds = 0.060
+        return DoubleArray((sampleRate * seconds).roundToInt()) { index ->
+            val t = index.toDouble() / sampleRate
+            // Around 1 kHz on the accent, like a quartz metronome; higher than that it turns shrill.
+            val w = 2.0 * PI * base * 0.57 * t
+            val body = sin(w) + 0.25 * sin(3.0 * w) + 0.08 * sin(5.0 * w)
+            body * minOf(1.0, t / 0.001) * minOf(1.0, (seconds - t) / 0.008)
         }
+    }
+
+    /**
+     * A hand bell, chosen by ear from several candidates: a clear strike tone with a slightly detuned twin that
+     * makes it shimmer, an octave, and a few higher partials that die first. It is a short "ting" of under half a second.
+     * It is not saturated or compressed, and is neither very high nor very low: a thin, short tone sounds like a
+     * triangle, a low one like a dull thump.
+     * Oscillators are rotated step by step (no sine per sample) because this is rendered on the audio thread.
+     */
+    private fun bellClick(strikeHz: Double): DoubleArray {
+        //                         strike twin octave
+        val ratio = doubleArrayOf(1.0, 1.0, 2.0, 2.4, 3.0, 4.2, 5.9)
+        val offsetHz = doubleArrayOf(0.0, 1.2, 0.0, 0.0, 0.0, 0.0, 0.0)
+        val strength = doubleArrayOf(1.0, 0.6, 0.7, 0.35, 0.3, 0.2, 0.1)
+        // A short "ting", like the bell of a mechanical metronome: it marks the beat and gets out of the way.
+        val decaySeconds = doubleArrayOf(0.2, 0.2, 0.14, 0.1, 0.08, 0.05, 0.03) // time constant of each partial
+        val seconds = 0.45
+        val frames = (sampleRate * seconds).roundToInt()
+        val out = DoubleArray(frames)
+        for (partial in ratio.indices) {
+            val step = 2.0 * PI * (strikeHz * ratio[partial] + offsetHz[partial]) / sampleRate
+            val cos = kotlin.math.cos(step)
+            val sin = sin(step)
+            val decay = exp(-1.0 / (sampleRate * decaySeconds[partial]))
+            var x = 0.0 // sin(theta)
+            var y = 1.0 // cos(theta)
+            var envelope = strength[partial]
+            for (index in 0 until frames) {
+                out[index] += x * envelope
+                val nextX = x * cos + y * sin
+                y = y * cos - x * sin
+                x = nextX
+                envelope *= decay
+            }
+        }
+        // A very short bright tick at the start is the strike of the clapper.
+        val strike = (sampleRate * 0.001).roundToInt()
+        var noise = 0x1F123BB5
+        for (index in 0 until strike) {
+            noise = noise xor (noise shl 13); noise = noise xor (noise ushr 17); noise = noise xor (noise shl 5)
+            out[index] += (noise.toDouble() / Int.MAX_VALUE) * 0.5 * (1.0 - index.toDouble() / strike)
+        }
+        // Fade the last milliseconds so the buffer never ends on a step.
+        val fade = (sampleRate * 0.04).roundToInt()
+        for (index in 0 until fade) out[frames - 1 - index] *= index.toDouble() / fade
+        return out
     }
 
     private companion object {
         const val HISTORY_CAPACITY = 64
-        const val CLICK_MILLISECONDS = 24.0
+        const val KNEE = 24_000
+        const val MAX_VOICES = 16
     }
 }
 

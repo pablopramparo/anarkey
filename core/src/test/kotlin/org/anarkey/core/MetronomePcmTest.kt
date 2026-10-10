@@ -86,6 +86,47 @@ class MetronomePcmTest {
         assertFalse(wood.contentEquals(digitalPcm))
     }
 
+    @Test fun soundsDifferInLengthAndTimbreButNotInLoudness() {
+        fun render(sound: ClickSound): ShortArray {
+            val generator = MetronomePcmGenerator(48_000, MetronomeSettings(bpm = 30, sound = sound, volume = 1f))
+            return ShortArray(24_000).also { generator.render(it) }
+        }
+        fun ringMs(pcm: ShortArray): Double {
+            val peak = pcm.maxOf { kotlin.math.abs(it.toInt()) }
+            val last = pcm.indexOfLast { kotlin.math.abs(it.toInt()) > peak * 0.05 }
+            return last * 1_000.0 / 48_000
+        }
+        val wood = render(ClickSound.WOOD)
+        val digital = render(ClickSound.DIGITAL)
+        val bell = render(ClickSound.BELL)
+        // Same peak (within 2%), so a change of sound is a change of character, not of volume.
+        val peaks = listOf(wood, digital, bell).map { pcm -> pcm.maxOf { kotlin.math.abs(it.toInt()) }.toDouble() }
+        assertTrue(peaks.max() / peaks.min() < 1.02)
+        // Clearly different lengths: a short tok, a gated beep and a ringing bell.
+        assertTrue(ringMs(wood) < 35)
+        assertTrue(ringMs(digital) in 45.0..65.0)
+        assertTrue(ringMs(bell) > 300) // a bell keeps ringing well after a click or a beep is over
+        assertFalse(wood.contentEquals(digital))
+        assertFalse(digital.contentEquals(bell))
+        // Rendering is deterministic, so the same setting always sounds the same.
+        assertTrue(render(ClickSound.WOOD).contentEquals(wood))
+    }
+
+    @Test fun clicksKeepSoundingAcrossSmallBlocks() {
+        // The player renders 5 ms blocks; a click must not be cut where a block ends.
+        ClickSound.entries.forEach { sound ->
+            val settings = MetronomeSettings(bpm = 200, sound = sound, volume = 1f)
+            val whole = ShortArray(48_000).also { MetronomePcmGenerator(48_000, settings).render(it) }
+            val blocks = MetronomePcmGenerator(48_000, settings)
+            val pieced = ShortArray(48_000)
+            val block = ShortArray(240)
+            for (start in 0 until 48_000 step 240) { blocks.render(block); block.copyInto(pieced, start) }
+            assertTrue(sound.name, whole.contentEquals(pieced))
+            // And each sound really lasts longer than one block.
+            assertTrue(sound.name, pieced.indexOfLast { it != 0.toShort() } > 240 * 4)
+        }
+    }
+
     @Test fun visualBeatFollowsPlayedSampleFrameNotRenderedFuture() {
         val generator = MetronomePcmGenerator(48_000, MetronomeSettings(bpm = 60))
         generator.render(ShortArray(2_000))
