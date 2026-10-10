@@ -66,9 +66,14 @@ data class SongMetadata(
     val tuningId: String? = null,
 ) {
     fun validationError(): String? {
-        if ((instrumentId == null) != (tuningId == null)) return "instrument_tuning_pair"
-        if (instrumentId != null && (TuningCatalog.instrument(instrumentId) == null ||
-                TuningCatalog.tuning(tuningId.orEmpty())?.instrumentId != instrumentId)) return "instrument_tuning_unknown"
+        // The keyboard has no tuning; every other instrument needs a tuning from its own catalog.
+        if (instrumentId == PianoChordForms.INSTRUMENT_ID) {
+            if (tuningId != null) return "instrument_tuning_unknown"
+        } else {
+            if ((instrumentId == null) != (tuningId == null)) return "instrument_tuning_pair"
+            if (instrumentId != null && (TuningCatalog.instrument(instrumentId) == null ||
+                    TuningCatalog.tuning(tuningId.orEmpty())?.instrumentId != instrumentId)) return "instrument_tuning_unknown"
+        }
         if (bpm != null && bpm !in 1..400) return "bpm_range"
         if ((timeNumerator == null) != (timeDenominator == null)) return "time_signature_pair"
         if (timeNumerator != null && timeNumerator !in 1..16) return "time_numerator_range"

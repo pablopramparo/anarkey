@@ -11,22 +11,32 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.anarkey.app.R
 import org.anarkey.app.recording.data.SongDocument
+import org.anarkey.app.ui.Muted
 import org.anarkey.core.music.*
 
 @Composable
 internal fun SongTransposeDialog(document: SongDocument, naming: NoteNaming, onDismiss: () -> Unit,
-    onApply: (Int, Boolean, () -> Unit) -> Unit) {
+    onApply: (Int, Boolean, () -> Unit) -> Unit, onRestore: (Boolean, () -> Unit) -> Unit) {
     var interval by remember { mutableIntStateOf(0) }
     var saving by remember { mutableStateOf(false) }
     val flats = naming == NoteNaming.LETTERS_FLATS || naming == NoteNaming.SOLFEGE_FLATS
-    val symbols = document.chords.values.flatten().map { it.originalSymbol }.distinct()
-    val unknown = symbols.filter { !ChordSymbolParser.parse(it).interpretable }
-    val canTranspose = document.song.keyRoot != null || symbols.any { ChordSymbolParser.parse(it).interpretable }
-    fun display(symbol: String) = ChordSymbolFormatter.format(symbol, naming)
+    // Rests have nothing to transpose; notes move with the chords.
+    val symbols = document.chords.values.flatten().map { it.originalSymbol }.distinct().filter { SongMarks.parse(it) != SongMark.Rest }
+    fun movable(symbol: String) = SongMarks.parse(symbol) is SongMark.Note || ChordSymbolParser.parse(symbol).interpretable
+    val unknown = symbols.filter { !movable(it) }
+    val canTranspose = document.song.keyRoot != null || symbols.any(::movable)
+    fun display(symbol: String) = SongMarks.display(symbol, naming)
     AlertDialog(onDismissRequest = { if (!saving) onDismiss() },
         title = { Text(stringResource(R.string.song_transpose)) },
         text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.song_transpose_hint))
+            val offset = document.song.transposeOffset
+            if (offset != 0) {
+                Text(stringResource(R.string.song_transpose_from_original, offset), color = Muted)
+                OutlinedButton(enabled = !saving, onClick = { saving = true; onRestore(flats) { saving = false } }) {
+                    Text(stringResource(R.string.song_transpose_restore))
+                }
+            }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextButton(enabled = !saving && interval > -11, onClick = { interval-- }) { Text("−1") }
                 Text(stringResource(R.string.song_transpose_interval, interval), Modifier.weight(1f))

@@ -4,6 +4,7 @@ package org.anarkey.core.music
 object ChordTransposition {
     fun transpose(symbol: String, semitones: Int, flats: Boolean = false): String {
         if (semitones.mod(12) == 0) return symbol
+        (SongMarks.parse(symbol) as? SongMark.Note)?.let { return SongMarks.transposeNote(it, semitones, flats) }
         val chord = ChordSymbolParser.parse(symbol)
         if (!chord.interpretable) return symbol
         fun moved(letter: String?, accidental: Int?): String {

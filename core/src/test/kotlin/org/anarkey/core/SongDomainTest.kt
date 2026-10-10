@@ -31,5 +31,11 @@ class SongDomainTest {
         assertNull(SongMetadata(bpm = 60, timeNumerator = 6, timeDenominator = 8, instrumentId = "guitar", tuningId = "guitar.drop_d", capo = 4).validationError())
         assertEquals("bpm_range", SongMetadata(bpm = 401).validationError())
         assertEquals("instrument_tuning_unknown", SongMetadata(instrumentId = "guitar", tuningId = "violin.standard").validationError())
+        assertEquals("instrument_tuning_pair", SongMetadata(instrumentId = "guitar").validationError())
+    }
+
+    @Test fun pianoIsAnInstrumentWithoutTuning() {
+        assertNull(SongMetadata(instrumentId = "piano").validationError())
+        assertEquals("instrument_tuning_unknown", SongMetadata(instrumentId = "piano", tuningId = "guitar.standard").validationError())
     }
 }

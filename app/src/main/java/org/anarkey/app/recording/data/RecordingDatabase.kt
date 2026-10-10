@@ -30,6 +30,8 @@ data class SongEntity(
     val favorite: Boolean,
     val createdAtMs: Long,
     val updatedAtMs: Long,
+    /** Semitones (0..11) the song has been transposed up from its original key; lets the original be restored. */
+    @ColumnInfo(defaultValue = "0") val transposeOffset: Int = 0,
 )
 
 @Entity(tableName = "song_sections", foreignKeys = [ForeignKey(entity = SongEntity::class, parentColumns = ["id"], childColumns = ["songId"], onDelete = ForeignKey.CASCADE)], indices = [Index(value = ["songId", "position"])])
@@ -46,6 +48,8 @@ data class ChordPlacementEntity(
     @PrimaryKey val id: String, val lineId: String, val position: Int, val orderInPosition: Int,
     val originalSymbol: String, val rootLetter: String?, val rootAccidental: Int?, val quality: String?,
     val extension: String?, val bassLetter: String?, val bassAccidental: Int?,
+    /** Note value ("1/4", "1/8."); null on a chord means it lasts one bar. */
+    val figure: String? = null,
 )
 
 @Entity(tableName = "tags", indices = [Index(value = ["normalizedName"], unique = true)])
@@ -145,6 +149,7 @@ interface RecordingDao {
 interface SongDao {
     @Query("SELECT * FROM songs ORDER BY favorite DESC, title COLLATE NOCASE, id") fun observeAll(): Flow<List<SongEntity>>
     @Query("SELECT * FROM songs WHERE id = :id") suspend fun find(id: String): SongEntity?
+    @Query("SELECT id FROM songs ORDER BY title COLLATE NOCASE, id") suspend fun allSongIds(): List<String>
     @Query("SELECT * FROM songs WHERE id IN (SELECT songId FROM song_tags WHERE tagId = :tagId) ORDER BY favorite DESC, title COLLATE NOCASE, id") fun observeByTag(tagId: String): Flow<List<SongEntity>>
     @Insert suspend fun insert(song: SongEntity)
     @Update suspend fun update(song: SongEntity)
@@ -201,7 +206,7 @@ interface RecordingMarkerDao {
     suspend fun clampPositions(recordingId: String, durationMs: Long)
 }
 
-@Database(entities = [SessionEntity::class, RecordingEntity::class, RecordingMarkerEntity::class, SongEntity::class, SongSectionEntity::class, SongLineEntity::class, ChordPlacementEntity::class, TagEntity::class, SongTagEntity::class, ChordFavoriteEntity::class], version = 4, exportSchema = true)
+@Database(entities = [SessionEntity::class, RecordingEntity::class, RecordingMarkerEntity::class, SongEntity::class, SongSectionEntity::class, SongLineEntity::class, ChordPlacementEntity::class, TagEntity::class, SongTagEntity::class, ChordFavoriteEntity::class], version = 6, exportSchema = true)
 @TypeConverters(RecordingConverters::class)
 abstract class RecordingDatabase : RoomDatabase() {
     abstract fun sessions(): SessionDao
@@ -258,6 +263,16 @@ abstract class RecordingDatabase : RoomDatabase() {
             override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                 db.execSQL("CREATE TABLE IF NOT EXISTS `chord_favorites` (`voicingId` TEXT NOT NULL, `addedAtMs` INTEGER NOT NULL, PRIMARY KEY(`voicingId`))")
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_chord_favorites_voicingId` ON `chord_favorites` (`voicingId`)")
+            }
+        }
+        val MIGRATION_5_6 = object : androidx.room.migration.Migration(5, 6) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `chord_placements` ADD COLUMN `figure` TEXT")
+            }
+        }
+        val MIGRATION_4_5 = object : androidx.room.migration.Migration(4, 5) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `songs` ADD COLUMN `transposeOffset` INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

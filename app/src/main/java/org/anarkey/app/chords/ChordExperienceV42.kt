@@ -31,7 +31,8 @@ import androidx.compose.ui.draw.rotate
 import org.anarkey.core.music.*
 
 @Composable
-fun ChordDictionaryScreenV42(model: ChordFavoriteViewModel, naming: NoteNaming, mode: ChordPresentationMode, setMode: (ChordPresentationMode) -> Unit) {
+fun ChordDictionaryScreenV42(model: ChordFavoriteViewModel, naming: NoteNaming, mode: ChordPresentationMode, setMode: (ChordPresentationMode) -> Unit,
+    instrument: ChordInstrumentChoice, setInstrument: (ChordInstrumentChoice) -> Unit) {
     var symbol by rememberSaveable { mutableStateOf("C") }
     var pickerOpen by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 2.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -48,7 +49,8 @@ fun ChordDictionaryScreenV42(model: ChordFavoriteViewModel, naming: NoteNaming, 
             }
             Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = NeonSoft)
         }
-        ChordDisplayV42(symbol, model, naming, mode, modifier = Modifier.weight(1f))
+        ChordDisplayV42(symbol, model, naming, mode, instrument.instrumentId, instrument.tuningId,
+            onInstrumentChange = { id, tuning -> setInstrument(ChordInstrumentChoice(id, tuning)) }, modifier = Modifier.weight(1f))
     }
     if (pickerOpen) ChordPickerV42(symbol, naming, mode, onDismiss = { pickerOpen = false }, onConfirm = { symbol = it; pickerOpen = false })
 }
@@ -58,24 +60,21 @@ fun ChordDictionaryScreenV42(model: ChordFavoriteViewModel, naming: NoteNaming, 
 fun ChordLookupSheetV42(
     symbol: String, model: ChordFavoriteViewModel, instrumentId: String?, tuningId: String?, capo: Int,
     naming: NoteNaming, mode: ChordPresentationMode,
+    onInstrumentChange: (String?, String?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        ChordDisplayV42(symbol, model, naming, mode, instrumentId, tuningId, capo, compact = true,
-            defaultToGuitar = false, modifier = Modifier.fillMaxWidth().heightIn(max = 720.dp).padding(horizontal = 12.dp))
+        ChordDisplayV42(symbol, model, naming, mode, instrumentId, tuningId, onInstrumentChange, capo, compact = true,
+            allowTheoryOnly = false, modifier = Modifier.fillMaxWidth().heightIn(max = 720.dp).padding(horizontal = 12.dp))
     }
 }
 
 @Composable
 private fun ChordDisplayV42(
     symbol: String, model: ChordFavoriteViewModel, naming: NoteNaming, mode: ChordPresentationMode,
-    preferredInstrument: String? = null, preferredTuning: String? = null, capo: Int = 0,
-    compact: Boolean = false, defaultToGuitar: Boolean = true, modifier: Modifier = Modifier,
+    instrumentId: String?, tuningId: String?, onInstrumentChange: (String?, String?) -> Unit, capo: Int = 0,
+    compact: Boolean = false, allowTheoryOnly: Boolean = true, modifier: Modifier = Modifier,
 ) {
-    var instrumentId by rememberSaveable(preferredInstrument, preferredTuning, defaultToGuitar) { mutableStateOf(preferredInstrument ?: if (defaultToGuitar) "guitar" else null) }
-    var tuningId by rememberSaveable(preferredInstrument, preferredTuning, defaultToGuitar) {
-        mutableStateOf(preferredTuning ?: when { preferredInstrument == "guitar" || (preferredInstrument == null && defaultToGuitar) -> "guitar.standard"; preferredInstrument != null -> TuningCatalog.forInstrument(preferredInstrument).firstOrNull()?.id; else -> null })
-    }
     var leftHanded by rememberSaveable { mutableStateOf(false) }
     var showFingerGuide by rememberSaveable { mutableStateOf(false) }
     var showDiagramHelp by rememberSaveable { mutableStateOf(false) }
@@ -83,6 +82,7 @@ private fun ChordDisplayV42(
     val favoriteIds by model.favoriteIds.collectAsStateWithLifecycle()
     val chord = remember(symbol) { ChordTheory.resolve(symbol) }
     var activeVoicingId by rememberSaveable(symbol, instrumentId, tuningId, capo) { mutableStateOf<String?>(null) }
+    val isPiano = instrumentId == PianoChordForms.INSTRUMENT_ID
 
     Column(modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         if (compact) Text(chordFullNameV42(symbol, naming), style = MaterialTheme.typography.titleLarge, color = NeonSoft, fontWeight = FontWeight.SemiBold, maxLines = 1)
@@ -91,23 +91,16 @@ private fun ChordDisplayV42(
             return@Column
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = 42.dp)) {
-            if (compact) {
-                val instrumentLabel = instrumentId?.let { instrumentNameV42(it) }.orEmpty()
-                val tuningLabel = tuningId?.let { tuningNameV42(it) }.orEmpty().removeInstrumentPrefixV42(instrumentLabel)
-                val contextLabel = if (capo > 0) stringResource(R.string.chord_context_line_capo,
-                    instrumentLabel, tuningLabel, capo)
-                else stringResource(R.string.chord_context_line, instrumentLabel, tuningLabel)
-                Text(contextLabel,
-                    Modifier.weight(1f), color = Muted, style = MaterialTheme.typography.labelSmall, maxLines = 2)
-                OrientationControlV42(leftHanded) { leftHanded = it }
-            } else {
-                InstrumentTuningControl(instrumentId, tuningId, onInstrument = { selected ->
-                    instrumentId = selected
-                    tuningId = selected?.let { TuningCatalog.forInstrument(it).firstOrNull()?.id }
-                }, onTuning = { tuningId = it })
-                Spacer(Modifier.weight(1f))
-                OrientationControlV42(leftHanded) { leftHanded = it }
-            }
+            InstrumentTuningControl(instrumentId, tuningId, allowTheoryOnly, onInstrument = { selected ->
+                onInstrumentChange(selected, selected?.let { TuningCatalog.forInstrument(it).firstOrNull()?.id })
+            }, onTuning = { onInstrumentChange(instrumentId, it) })
+            Spacer(Modifier.weight(1f))
+            if (compact && capo > 0 && !isPiano) Text(stringResource(R.string.chord_capo_relative, capo), color = Muted, style = MaterialTheme.typography.labelSmall)
+            if (!isPiano) OrientationControlV42(leftHanded) { leftHanded = it }
+        }
+        if (isPiano) {
+            PianoSectionV42(symbol, chord, naming, mode, showMusicDetails) { showMusicDetails = !showMusicDetails }
+            return@Column
         }
         val forms = ChordVoicingCatalog.forChord(symbol, instrumentId, tuningId)
         val voicings = if (mode == ChordPresentationMode.BEGINNER) ChordVoicingCatalog.prioritizeForBeginner(forms) else forms
@@ -167,8 +160,50 @@ private fun ChordDisplayV42(
     }
 }
 
+/** Piano is chord-only: forms come from theory (root position and inversions), so no tunings or favorites. */
 @Composable
-private fun InstrumentTuningControl(instrumentId: String?, tuningId: String?, onInstrument: (String?) -> Unit, onTuning: (String) -> Unit) {
+private fun PianoSectionV42(
+    symbol: String, chord: ChordDefinition, naming: NoteNaming, mode: ChordPresentationMode,
+    showMusicDetails: Boolean, onToggleDetails: () -> Unit,
+) {
+    val forms = remember(symbol) { PianoChordForms.forChord(symbol) }
+    var requested by rememberSaveable(symbol) { mutableIntStateOf(0) }
+    val index = requested.coerceIn(0, (forms.size - 1).coerceAtLeast(0))
+    val current = forms.getOrNull(index) ?: return
+    val spelled = (chord.tones.map { it.note } + listOfNotNull(chord.bass)).associateBy { it.pitchClass }
+    val noteNames = current.midi.map { midi -> spelled[midi.mod(12)]?.let { ChordSymbolFormatter.format(it, naming) } ?: "?" }
+    val notesText = stringResource(R.string.chord_notes, noteNames.joinToString(" · "))
+    Card(colors = CardDefaults.cardColors(containerColor = Panel), modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 2.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = 38.dp)) {
+                val position = stringResource(R.string.chord_position_count, index + 1, forms.size)
+                val inversion = if (current.inversion == 0) stringResource(R.string.chord_piano_root_position)
+                else stringResource(R.string.chord_piano_inversion, current.inversion)
+                Text("$position · $inversion", Modifier.weight(1f), color = Muted, style = MaterialTheme.typography.labelMedium)
+            }
+            PianoChordDiagram(current, chord.root.pitchClass, notesText)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp)) {
+                val previousDescription = chordTextV42(R.string.chord_previous_position)
+                IconButton(enabled = index > 0, onClick = { requested = index - 1 }, modifier = Modifier.size(44.dp).semantics {
+                    contentDescription = previousDescription
+                }) { Text("‹", fontSize = 28.sp, color = NeonSoft) }
+                Spacer(Modifier.weight(1f))
+                val nextDescription = chordTextV42(R.string.chord_next_position)
+                IconButton(enabled = index < forms.lastIndex, onClick = { requested = index + 1 }, modifier = Modifier.size(44.dp).semantics {
+                    contentDescription = nextDescription
+                }) { Text("›", fontSize = 28.sp, color = NeonSoft) }
+            }
+        }
+    }
+    Text(notesText, color = Muted, style = MaterialTheme.typography.bodySmall, maxLines = 2)
+    if (mode == ChordPresentationMode.ADVANCED) {
+        DisclosureButtonV42(stringResource(if (showMusicDetails) R.string.chord_hide_music else R.string.chord_more_music), showMusicDetails, onToggleDetails)
+        if (showMusicDetails) AdvancedDetailsV42(symbol, chord, naming)
+    }
+}
+
+@Composable
+internal fun InstrumentTuningControl(instrumentId: String?, tuningId: String?, allowTheoryOnly: Boolean, onInstrument: (String?) -> Unit, onTuning: (String) -> Unit) {
     var instrumentMenu by remember { mutableStateOf(false) }
     var tuningMenu by remember { mutableStateOf(false) }
     Box {
@@ -176,11 +211,12 @@ private fun InstrumentTuningControl(instrumentId: String?, tuningId: String?, on
             onClick = { instrumentMenu = true }, modifier = Modifier.heightIn(min = 40.dp),
             textStyle = MaterialTheme.typography.labelMedium)
         DropdownMenu(instrumentMenu, { instrumentMenu = false }) {
-            DropdownMenuItem(text = { Text(stringResource(R.string.chord_theory_only)) }, onClick = { onInstrument(null); instrumentMenu = false })
-            TuningCatalog.instruments.forEach { item -> DropdownMenuItem(text = { Text(instrumentNameV42(item.id)) }, onClick = { onInstrument(item.id); instrumentMenu = false }) }
+            if (allowTheoryOnly) DropdownMenuItem(text = { Text(stringResource(R.string.chord_theory_only)) }, onClick = { onInstrument(null); instrumentMenu = false })
+            ChordVoicingCatalog.instruments.forEach { item -> DropdownMenuItem(text = { Text(instrumentNameV42(item.id)) }, onClick = { onInstrument(item.id); instrumentMenu = false }) }
+            DropdownMenuItem(text = { Text(instrumentNameV42(PianoChordForms.INSTRUMENT_ID)) }, onClick = { onInstrument(PianoChordForms.INSTRUMENT_ID); instrumentMenu = false })
         }
     }
-    if (instrumentId != null) Box {
+    if (instrumentId != null && TuningCatalog.forInstrument(instrumentId).isNotEmpty()) Box {
         SelectorButton(tuningId?.let { tuningNameV42(it) } ?: stringResource(R.string.chord_select_tuning),
             onClick = { tuningMenu = true }, modifier = Modifier.heightIn(min = 40.dp),
             textStyle = MaterialTheme.typography.labelSmall)
@@ -383,7 +419,8 @@ private fun OrientationControlV42(leftHanded: Boolean, onSelect: (Boolean) -> Un
 @Composable
 private fun instrumentNameV42(id: String) = stringResource(when (id) {
     "guitar" -> R.string.guitar; "ukulele" -> R.string.ukulele; "bass" -> R.string.bass
-    "mandolin" -> R.string.mandolin; "banjo" -> R.string.banjo; else -> R.string.violin
+    "mandolin" -> R.string.mandolin; "banjo" -> R.string.banjo; PianoChordForms.INSTRUMENT_ID -> R.string.piano
+    else -> R.string.violin
 })
 
 @Composable

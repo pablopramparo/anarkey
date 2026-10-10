@@ -129,6 +129,7 @@ fun AppShell(
     setA4: (Double) -> Unit,
     setNaming: (NoteNaming) -> Unit,
     setChordPresentationMode: (ChordPresentationMode) -> Unit,
+    setChordInstrument: (ChordInstrumentChoice) -> Unit,
     appLanguage: String,
     setAppLanguage: (String) -> Unit,
     recorder: @Composable (recordingId: String?, onDismissInitial: () -> Unit) -> Unit,
@@ -209,11 +210,12 @@ fun AppShell(
                 val songId = backStackEntry.arguments?.getString("songId")
                 if (songId != null) SongDetailScreen(
                     model = songModel, chordModel = chordModel, songId = songId,
-                    openTuner = { nav.openTuner(it) }, openRecording = { nav.navigate("recording/$it") },
+                    openRecording = { nav.navigate("recording/$it") },
                     openMetronome = { bpm, numerator, denominator -> nav.navigate(metronomeContextRoute(bpm, numerator, denominator)) },
                     onDeleted = { nav.popBackStack() }, onStartRecording = { nav.navigate("recorder"); startSongRecording(songId) },
                     a4Hz = preferences.configuration.a4Hz, naming = preferences.noteNaming,
-                    chordMode = preferences.chordPresentationMode, setChordMode = setChordPresentationMode)
+                    chordMode = preferences.chordPresentationMode, setChordMode = setChordPresentationMode,
+                    chordInstrument = preferences.chordInstrument, setChordInstrument = setChordInstrument)
             }
             composable("recording/{recordingId}") { backStackEntry ->
                 recorder(backStackEntry.arguments?.getString("recordingId")) { nav.popBackStack() }
@@ -234,7 +236,8 @@ fun AppShell(
                     } else if (tool.route == "songs") {
                         SongLibraryScreen(songModel) { nav.navigate("song/$it") }
                     } else if (tool.route == "chords") {
-                        ChordDictionaryScreenV42(chordModel, preferences.noteNaming, preferences.chordPresentationMode, setChordPresentationMode)
+                        ChordDictionaryScreenV42(chordModel, preferences.noteNaming, preferences.chordPresentationMode, setChordPresentationMode,
+                            preferences.chordInstrument, setChordInstrument)
                     } else if (tool.route == "metronome") {
                         MetronomeScreen(metronomeModel)
                     } else {

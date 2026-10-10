@@ -55,8 +55,12 @@ data class TunerConfiguration(val selection: TunerSelection = TunerSelection.Def
 enum class NoteNaming { LETTERS_SHARPS, LETTERS_FLATS, SOLFEGE_SHARPS, SOLFEGE_FLATS }
 enum class ChordPresentationMode { BEGINNER, ADVANCED }
 
+/** Instrument shown by default in chord views; null is "theory only". Independent from the tuner's selection. */
+data class ChordInstrumentChoice(val instrumentId: String? = "guitar", val tuningId: String? = "guitar.standard")
+
 data class TunerPreferences(
     val configuration: TunerConfiguration = TunerConfiguration(),
     val noteNaming: NoteNaming = NoteNaming.LETTERS_SHARPS,
     val chordPresentationMode: ChordPresentationMode = ChordPresentationMode.BEGINNER,
+    val chordInstrument: ChordInstrumentChoice = ChordInstrumentChoice(),
 )

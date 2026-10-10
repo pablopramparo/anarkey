@@ -31,7 +31,7 @@ class RecordingMigrationTest {
         old.close()
 
         val room = Room.databaseBuilder(app, RecordingDatabase::class.java, DB_NAME)
-            .addMigrations(RecordingDatabase.MIGRATION_1_2, RecordingDatabase.MIGRATION_2_3, RecordingDatabase.MIGRATION_3_4).allowMainThreadQueries().build()
+            .addMigrations(RecordingDatabase.MIGRATION_1_2, RecordingDatabase.MIGRATION_2_3, RecordingDatabase.MIGRATION_3_4, RecordingDatabase.MIGRATION_4_5, RecordingDatabase.MIGRATION_5_6).allowMainThreadQueries().build()
         val migrated = room.openHelper.writableDatabase
         migrated.query("SELECT name, notes FROM sessions WHERE id = 'session-1'").use { cursor ->
             assertTrue(cursor.moveToFirst()); assertEquals("Ensayo", cursor.getString(0)); assertEquals("Notas", cursor.getString(1))
@@ -77,7 +77,7 @@ class RecordingMigrationTest {
         old.version = 2; old.close()
 
         val room = Room.databaseBuilder(app, RecordingDatabase::class.java, DB_NAME)
-            .addMigrations(RecordingDatabase.MIGRATION_2_3, RecordingDatabase.MIGRATION_3_4).allowMainThreadQueries().build()
+            .addMigrations(RecordingDatabase.MIGRATION_2_3, RecordingDatabase.MIGRATION_3_4, RecordingDatabase.MIGRATION_4_5, RecordingDatabase.MIGRATION_5_6).allowMainThreadQueries().build()
         val migrated = room.openHelper.writableDatabase
         migrated.query("SELECT name FROM sessions WHERE id='session-2'").use { assertTrue(it.moveToFirst()); assertEquals("Ensayo M2", it.getString(0)) }
         migrated.query("SELECT songId, waveformPeaks FROM recordings WHERE id='recording-2'").use {
@@ -91,7 +91,8 @@ class RecordingMigrationTest {
         migrated.query("SELECT text, positionMs FROM recording_markers WHERE id='marker-2'").use {
             assertTrue(it.moveToFirst()); assertEquals("estribillo", it.getString(0)); assertEquals(2100, it.getLong(1))
         }
-        migrated.execSQL("INSERT INTO songs VALUES ('song-2','Canción',NULL,'C','major',90,4,4,'guitar','guitar.standard',0,'',0,1,2)")
+        migrated.execSQL("INSERT INTO songs (id, title, artist, keyRoot, keyMode, bpm, timeNumerator, timeDenominator, instrumentId, tuningId, capo, notes, favorite, createdAtMs, updatedAtMs) VALUES ('song-2','Canción',NULL,'C','major',90,4,4,'guitar','guitar.standard',0,'',0,1,2)")
+        migrated.query("SELECT transposeOffset FROM songs WHERE id='song-2'").use { assertTrue(it.moveToFirst()); assertEquals("New column defaults to the original key", 0, it.getInt(0)) }
         migrated.execSQL("UPDATE recordings SET songId='song-2' WHERE id='recording-2'")
         migrated.execSQL("DELETE FROM songs WHERE id='song-2'")
         migrated.query("SELECT songId FROM recordings WHERE id='recording-2'").use { assertTrue(it.moveToFirst()); assertTrue(it.isNull(0)) }

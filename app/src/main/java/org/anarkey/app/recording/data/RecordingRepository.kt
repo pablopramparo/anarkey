@@ -64,7 +64,7 @@ class RecordingRepository(context: android.content.Context) {
     val files = RecordingFiles(context)
     private val resolver = context.applicationContext.contentResolver
     val database: RecordingDatabase = Room.databaseBuilder(context.applicationContext, RecordingDatabase::class.java,
-        RecordingDatabase.FILE_NAME).addMigrations(RecordingDatabase.MIGRATION_1_2, RecordingDatabase.MIGRATION_2_3, RecordingDatabase.MIGRATION_3_4).build()
+        RecordingDatabase.FILE_NAME).addMigrations(RecordingDatabase.MIGRATION_1_2, RecordingDatabase.MIGRATION_2_3, RecordingDatabase.MIGRATION_3_4, RecordingDatabase.MIGRATION_4_5, RecordingDatabase.MIGRATION_5_6).build()
     val recordings: Flow<List<RecordingEntity>> = database.recordings().observeAll()
     val sessions: Flow<List<SessionEntity>> = database.sessions().observeAll()
 

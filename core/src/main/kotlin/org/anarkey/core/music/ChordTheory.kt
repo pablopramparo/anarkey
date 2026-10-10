@@ -186,6 +186,8 @@ object ChordVoicingCatalog {
         u("uke.high.e7", "E7", listOf(1,2,0,2), listOf(FingerPosition(0,1,1),FingerPosition(1,2,2),FingerPosition(3,2,3))),
         u("uke.low.e7", "E7", listOf(1,2,0,2), listOf(FingerPosition(0,1,1),FingerPosition(1,2,2),FingerPosition(3,2,3)), tuning="ukulele.low_g"),
     ) + StandardGuitarVoicings.entries + OtherInstrumentVoicings.entries).distinctBy { Triple(it.tuningId, it.chordSymbol, it.frets) }
+    /** Instruments that have at least one curated form, in catalog order; the chord selectors list only these. */
+    val instruments: List<Instrument> = TuningCatalog.instruments.filter { instrument -> entries.any { it.instrumentId == instrument.id } }
     private val byPitchClasses = entries.groupBy { ChordTheory.resolve(it.chordSymbol)?.pitchClasses }
     fun forChord(symbol: String, instrumentId: String?, tuningId: String?): List<ChordVoicing> {
         if (instrumentId == null) return emptyList()

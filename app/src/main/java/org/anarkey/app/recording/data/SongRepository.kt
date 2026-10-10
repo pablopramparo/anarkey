@@ -5,7 +5,13 @@ import java.util.Locale
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import org.anarkey.core.music.ChordAnchors
+import org.anarkey.core.music.ChordPro
 import org.anarkey.core.music.ChordSymbolParser
+import org.anarkey.core.exchange.ExchangeLine
+import org.anarkey.core.exchange.ExchangeMark
+import org.anarkey.core.exchange.ExchangeSection
+import org.anarkey.core.exchange.ExchangeSong
+import org.anarkey.core.music.NoteDuration
 import org.anarkey.core.music.SongMetadata
 
 data class SongDocument(val song: SongEntity, val sections: List<SongSectionEntity>, val lines: List<SongLineEntity>, val chords: Map<String, List<ChordPlacementEntity>>, val tags: List<TagEntity>)
@@ -23,6 +29,77 @@ class SongRepository(private val database: RecordingDatabase) {
         val now = System.currentTimeMillis()
         return SongEntity(UUID.randomUUID().toString(), clean, null, null, null, null, null, null,
             null, null, 0, "", false, now, now).also { dao.insert(it) }
+    }
+
+    /**
+     * Stores a song that arrived from a file or the bundled demos, in one transaction. It always creates a new
+     * song; nothing existing is touched. A section without a title gets the localized default from [sectionTitle].
+     */
+    suspend fun importExchange(song: ExchangeSong, sectionTitle: (kind: String, ordinal: Int, total: Int) -> String): SongEntity = database.withTransaction {
+        val now = System.currentTimeMillis()
+        val entity = SongEntity(UUID.randomUUID().toString(), song.title, song.artist, song.keyRoot, song.keyMode, song.bpm,
+            song.timeNumerator, song.timeDenominator, song.instrumentId, song.tuningId, song.capo, song.notes, song.favorite,
+            now, now, song.transposeOffset)
+        dao.insert(entity)
+        suspend fun store(lines: List<ExchangeLine>, sectionId: String?) {
+            if (lines.isEmpty()) return
+            val rows = lines.mapIndexed { position, line -> SongLineEntity(UUID.randomUUID().toString(), entity.id, sectionId, position, line.text) }
+            dao.insertLines(rows)
+            lines.forEachIndexed { index, line ->
+                line.marks.forEachIndexed { order, mark ->
+                    val parsed = ChordSymbolParser.parse(mark.symbol)
+                    val sameSpot = line.marks.take(order).count { it.position == mark.position }
+                    dao.insertChord(ChordPlacementEntity(UUID.randomUUID().toString(), rows[index].id, mark.position, sameSpot,
+                        parsed.original, parsed.rootLetter, parsed.rootAccidental, parsed.quality, parsed.extension,
+                        parsed.bassLetter, parsed.bassAccidental, mark.figure))
+                }
+            }
+        }
+        store(song.unsectionedLines, null)
+        song.sections.forEachIndexed { index, section ->
+            val ordinal = song.sections.take(index + 1).count { it.kind == section.kind }
+            val total = song.sections.count { it.kind == section.kind }
+            val title = section.title.ifBlank { sectionTitle(section.kind, ordinal, total) }
+            val row = SongSectionEntity(UUID.randomUUID().toString(), entity.id, index, section.kind, title.take(80), section.notes)
+            dao.insertSection(row)
+            store(section.lines, row.id)
+        }
+        song.tags.forEach { name ->
+            val normalized = name.trim().lowercase(Locale.ROOT).take(40)
+            if (normalized.isBlank()) return@forEach
+            val tag = dao.findTag(normalized) ?: TagEntity(UUID.randomUUID().toString(), name.trim().take(40), normalized).also { dao.insertTag(it) }
+            dao.attachTag(SongTagEntity(entity.id, tag.id))
+        }
+        entity
+    }
+
+    /** The song as exchange data, ready to be written to any supported format. */
+    suspend fun exchange(songId: String): ExchangeSong {
+        val document = document(songId)
+        fun lines(sectionId: String?) = document.lines.filter { it.sectionId == sectionId }.sortedBy { it.position }.map { line ->
+            ExchangeLine(line.text, document.chords[line.id].orEmpty()
+                .sortedWith(compareBy({ it.position }, { it.orderInPosition }))
+                .map { ExchangeMark(it.position, it.originalSymbol, it.figure) })
+        }
+        val song = document.song
+        return ExchangeSong(
+            title = song.title, artist = song.artist, keyRoot = song.keyRoot, keyMode = song.keyMode, bpm = song.bpm,
+            timeNumerator = song.timeNumerator, timeDenominator = song.timeDenominator, capo = song.capo,
+            instrumentId = song.instrumentId, tuningId = song.tuningId, notes = song.notes, favorite = song.favorite,
+            transposeOffset = song.transposeOffset, tags = document.tags.map { it.name },
+            unsectionedLines = lines(null),
+            sections = document.sections.sortedBy { it.position }.map { ExchangeSection(it.kind, it.title, it.notes, lines(it.id)) },
+        )
+    }
+
+    suspend fun exchangeAll(): List<ExchangeSong> = dao.allSongIds().map { exchange(it) }
+
+    /** The instrument a song's chords are shown and played on; independent from the tuner. */
+    suspend fun setInstrument(songId: String, instrumentId: String?, tuningId: String?) {
+        val old = dao.find(songId) ?: throw NoSuchElementException("song_missing")
+        val validation = SongMetadata(old.bpm, old.timeNumerator, old.timeDenominator, old.capo, instrumentId, tuningId).validationError()
+        require(validation == null) { validation ?: "invalid_metadata" }
+        dao.update(old.copy(instrumentId = instrumentId, tuningId = tuningId, updatedAtMs = System.currentTimeMillis()))
     }
 
     suspend fun save(songId: String, title: String, artist: String?, keyRoot: String?, keyMode: String?,
@@ -67,7 +144,7 @@ class SongRepository(private val database: RecordingDatabase) {
         }
         dao.update(document.song.copy(keyRoot = document.song.keyRoot?.let {
             org.anarkey.core.music.ChordTransposition.transpose(it, semitones, flats)
-        }, updatedAtMs = System.currentTimeMillis()))
+        }, transposeOffset = (document.song.transposeOffset + semitones).mod(12), updatedAtMs = System.currentTimeMillis()))
     }
 
     suspend fun deleteSong(songId: String) = database.withTransaction {
@@ -172,7 +249,8 @@ class SongRepository(private val database: RecordingDatabase) {
         touch(songId)
     }
 
-    suspend fun placeChord(lineId: String, position: Int, symbol: String): ChordPlacementEntity {
+    suspend fun placeChord(lineId: String, position: Int, symbol: String, figure: String? = null): ChordPlacementEntity {
+        require(figure == null || NoteDuration.parse(figure) != null) { "figure_invalid" }
         val line = findLine(lineId) ?: throw NoSuchElementException("line_missing")
         val clean = symbol.trim().take(40)
         require(clean.isNotEmpty()) { "chord_required" }
@@ -180,11 +258,12 @@ class SongRepository(private val database: RecordingDatabase) {
         val atPosition = dao.chords(lineId).count { it.position == anchor }
         val parsed = ChordSymbolParser.parse(clean)
         return ChordPlacementEntity(UUID.randomUUID().toString(), lineId, anchor, atPosition, parsed.original,
-            parsed.rootLetter, parsed.rootAccidental, parsed.quality, parsed.extension, parsed.bassLetter, parsed.bassAccidental)
+            parsed.rootLetter, parsed.rootAccidental, parsed.quality, parsed.extension, parsed.bassLetter, parsed.bassAccidental, figure)
             .also { database.withTransaction { dao.insertChord(it); touch(line.songId) } }
     }
 
-    suspend fun editChord(id: String, symbol: String, position: Int, targetLineId: String? = null) = database.withTransaction {
+    suspend fun editChord(id: String, symbol: String, position: Int, figure: String?, targetLineId: String? = null) = database.withTransaction {
+        require(figure == null || NoteDuration.parse(figure) != null) { "figure_invalid" }
         val current = dao.chord(id) ?: return@withTransaction
         val line = findLine(targetLineId ?: current.lineId) ?: return@withTransaction
         val originalLine = findLine(current.lineId) ?: return@withTransaction
@@ -196,7 +275,7 @@ class SongRepository(private val database: RecordingDatabase) {
             else dao.chords(line.id).count { it.position == anchor && it.id != id }
         dao.updateChord(current.copy(lineId = line.id, position = anchor, orderInPosition = order, originalSymbol = parsed.original,
             rootLetter = parsed.rootLetter, rootAccidental = parsed.rootAccidental, quality = parsed.quality,
-            extension = parsed.extension, bassLetter = parsed.bassLetter, bassAccidental = parsed.bassAccidental))
+            extension = parsed.extension, bassLetter = parsed.bassLetter, bassAccidental = parsed.bassAccidental, figure = figure))
         touch(line.songId)
     }
     suspend fun deleteChord(id: String) = database.withTransaction { dao.chord(id)?.let { chord ->

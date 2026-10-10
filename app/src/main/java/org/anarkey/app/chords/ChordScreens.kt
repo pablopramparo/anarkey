@@ -122,7 +122,7 @@ private fun ChordLookupContent(
                     onClick = { menu = true })
                 DropdownMenu(menu, { menu = false }) {
                     DropdownMenuItem(text = { Text(stringResource(R.string.chord_theory_only)) }, onClick = { instrumentId = null; tuningId = null; menu = false })
-                    TuningCatalog.instruments.forEach { item -> DropdownMenuItem(text = { Text(instrumentName(item.id)) }, onClick = {
+                    ChordVoicingCatalog.instruments.forEach { item -> DropdownMenuItem(text = { Text(instrumentName(item.id)) }, onClick = {
                         instrumentId = item.id; tuningId = TuningCatalog.forInstrument(item.id).firstOrNull()?.id; menu = false
                     }) }
                 }

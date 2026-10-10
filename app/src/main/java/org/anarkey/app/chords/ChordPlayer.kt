@@ -31,11 +31,25 @@ object ChordPlayer {
             val open = tuning.strings.getOrNull(index)?.midi ?: return@mapIndexedNotNull null
             fret?.let { open + it + capo }
         }
+        playNotes(notes, a4Hz)
+    }
+
+    /** Plays raw MIDI notes; keys are struck nearly together, like a keyboard chord, unless [strumGapS] says otherwise. */
+    suspend fun playNotes(notes: List<Int>, a4Hz: Double = 440.0, strumGapS: Double = STRUM_GAP_S) {
         if (notes.isEmpty()) return
-        val pcm = withContext(Dispatchers.Default) { render(notes, a4Hz) }
+        val pcm = render(notes, DURATION_S, strumGapS, a4Hz)
         val track = withContext(Dispatchers.IO) { start(pcm) } ?: return
         delay((DURATION_S * 1000).toLong() + 300)
         release(track)
+    }
+
+    /** Renders a chord ringing for [durationS], so a sequence can be prepared ahead and started on time. */
+    suspend fun render(notes: List<Int>, durationS: Double, strumGapS: Double, a4Hz: Double = 440.0): ShortArray =
+        withContext(Dispatchers.Default) { synthesize(notes, a4Hz, strumGapS, durationS) }
+
+    /** Starts rendered audio right away, replacing whatever is sounding; it is released by the next start or [stop]. */
+    suspend fun playNow(pcm: ShortArray) {
+        withContext(Dispatchers.IO) { start(pcm) }
     }
 
     fun stop() = synchronized(lock) { current?.let(::releaseLocked); current = null }
@@ -68,12 +82,12 @@ object ChordPlayer {
         runCatching { track.release() }
     }
 
-    private fun render(midiNotes: List<Int>, a4Hz: Double): ShortArray {
-        val total = ((DURATION_S + STRUM_GAP_S * midiNotes.size) * SAMPLE_RATE).toInt()
+    private fun synthesize(midiNotes: List<Int>, a4Hz: Double, strumGapS: Double, durationS: Double): ShortArray {
+        val total = ((durationS + strumGapS * midiNotes.size) * SAMPLE_RATE).toInt()
         val mix = FloatArray(total)
         midiNotes.forEachIndexed { order, midi ->
             val hz = a4Hz * 2.0.pow((midi - 69) / 12.0)
-            val start = (order * STRUM_GAP_S * SAMPLE_RATE).toInt()
+            val start = (order * strumGapS * SAMPLE_RATE).toInt()
             addString(mix, start, hz)
         }
         val gain = 0.55f / kotlin.math.sqrt(midiNotes.size.toFloat())

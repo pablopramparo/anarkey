@@ -27,6 +27,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setA4(value: Double) = write { repository.setA4(value) }
     fun setNaming(value: NoteNaming) = write { repository.setNaming(value) }
     fun setChordPresentationMode(value: ChordPresentationMode) = write { repository.setChordPresentationMode(value) }
+    fun setChordInstrument(value: ChordInstrumentChoice) = write { repository.setChordInstrument(value) }
     fun clearWriteError() { mutableWriteFailed.value = false }
     private fun write(block: suspend () -> Unit) {
         viewModelScope.launch {

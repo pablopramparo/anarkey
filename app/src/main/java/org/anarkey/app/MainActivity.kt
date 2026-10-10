@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 } else {
-                    AppShell(preferences, settings::setA4, settings::setNaming, settings::setChordPresentationMode,
+                    AppShell(preferences, settings::setA4, settings::setNaming, settings::setChordPresentationMode, settings::setChordInstrument,
                         appLanguage = appLanguage.value,
                         setAppLanguage = { language -> AppLanguage.set(this@MainActivity, language); recreate() },
                         recorder = { recordingId, onDismissInitial ->
