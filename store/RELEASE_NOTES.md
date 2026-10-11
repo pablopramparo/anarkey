@@ -2,6 +2,34 @@
 
 "What's new" is limited to 500 characters per language. Paste the text of the version being uploaded.
 
+## 0.2.2-prototype (versionCode 17)
+
+Replaces version 16 in the closed test. Fixes a navigation trap when recording from a song.
+
+### Español (es-US / es-419)
+
+```
+Novedades:
+• Grabar desde una canción: al terminar volvés a la canción, sin quedar atrapado en el grabador.
+• Canciones: reproducí los acordes en orden con la letra resaltada.
+• Notas y silencios con figuras, y piano en Acordes.
+• Importá y compartí canciones en ChordPro o como copia de Anarkey.
+• Cada canción recuerda su instrumento. Transponé y volvé al original.
+• Metrónomo: los sonidos madera, digital y campana se distinguen.
+```
+
+### English (en-US)
+
+```
+What's new:
+• Recording from a song: when you finish you return to the song instead of getting stuck in the recorder.
+• Songs: play the chords in order with the lyric highlighted.
+• Notes and rests with note values, and piano in Chords.
+• Import and share songs as ChordPro or as an Anarkey copy.
+• Each song remembers its instrument. Transpose and return to the original.
+• Metronome: the wood, digital and bell sounds are clearly different.
+```
+
 ## 0.2.1-prototype (versionCode 16)
 
 Replaces version 15 in the closed test. Same notes as 0.2.0 plus the metronome sounds.

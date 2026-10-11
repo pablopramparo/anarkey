@@ -56,10 +56,18 @@ import org.anarkey.core.recording.WaveformCodec
 @Composable
 fun RecorderScreen(model: RecorderViewModel, requestPermission: () -> Unit,
     onShare: (RecordingEntity) -> Unit, onExport: (RecordingEntity) -> Unit, initialRecordingId: String? = null,
-    onDismissInitialRecording: () -> Unit = {}) {
+    onDismissInitialRecording: () -> Unit = {}, onRecordingFinished: (() -> Unit)? = null) {
     val recordings by model.recordings.collectAsStateWithLifecycle()
     val sessions by model.sessions.collectAsStateWithLifecycle()
     val runtime by model.runtime.collectAsStateWithLifecycle()
+    // Opened from a song: once a recording has started and the recorder is idle again (saved, cancelled
+    // or failed), hand control back to the caller instead of leaving the user on the recorder list.
+    var sawActivePhase by remember { mutableStateOf(false) }
+    LaunchedEffect(runtime.phase) {
+        if (onRecordingFinished == null) return@LaunchedEffect
+        if (runtime.phase != RecorderPhase.IDLE) sawActivePhase = true
+        else if (sawActivePhase) onRecordingFinished()
+    }
     var selectedSession by remember { mutableStateOf<String?>(null) }
     var selectedRecording by remember { mutableStateOf<RecordingEntity?>(null) }
     var createSession by remember { mutableStateOf(false) }

@@ -104,11 +104,12 @@ class MainActivity : ComponentActivity() {
                     AppShell(preferences, settings::setA4, settings::setNaming, settings::setChordPresentationMode, settings::setChordInstrument,
                         appLanguage = appLanguage.value,
                         setAppLanguage = { language -> AppLanguage.set(this@MainActivity, language); recreate() },
-                        recorder = { recordingId, onDismissInitial ->
+                        recorder = { recordingId, onDismissInitial, onFinished ->
                             RecorderScreen(recorder, { startRecordingRequest() },
                                 onShare = ::shareRecording,
                                 onExport = { row -> pendingExport = row; exportFile.launch(row.displayName + ".m4a") },
-                                initialRecordingId = recordingId, onDismissInitialRecording = onDismissInitial)
+                                initialRecordingId = recordingId, onDismissInitialRecording = onDismissInitial,
+                                onRecordingFinished = onFinished)
                         },
                         songModel = songs,
                         chordModel = chordFavorites,

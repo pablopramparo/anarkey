@@ -132,7 +132,7 @@ fun AppShell(
     setChordInstrument: (ChordInstrumentChoice) -> Unit,
     appLanguage: String,
     setAppLanguage: (String) -> Unit,
-    recorder: @Composable (recordingId: String?, onDismissInitial: () -> Unit) -> Unit,
+    recorder: @Composable (recordingId: String?, onDismissInitial: () -> Unit, onFinished: (() -> Unit)?) -> Unit,
     songModel: SongViewModel,
     chordModel: ChordFavoriteViewModel,
     metronomeModel: MetronomeViewModel,
@@ -142,7 +142,7 @@ fun AppShell(
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route
-    val secondary = route == "settings" || route == TunerRoute.Context || route?.startsWith("song/") == true || route?.startsWith("recording/") == true || route?.startsWith("metronome/context") == true
+    val secondary = route == "settings" || route == TunerRoute.Context || route?.startsWith("song/") == true || route?.startsWith("recording/") == true || route == "recorder/song/{songId}" ||route?.startsWith("metronome/context") == true
     val selected = if (route == TunerRoute.Context) TunerRoute.Home else route
     fun selectTool(destination: String) {
         if (selected == destination && !secondary) return
@@ -212,13 +212,17 @@ fun AppShell(
                     model = songModel, chordModel = chordModel, songId = songId,
                     openRecording = { nav.navigate("recording/$it") },
                     openMetronome = { bpm, numerator, denominator -> nav.navigate(metronomeContextRoute(bpm, numerator, denominator)) },
-                    onDeleted = { nav.popBackStack() }, onStartRecording = { nav.navigate("recorder"); startSongRecording(songId) },
+                    onDeleted = { nav.popBackStack() }, onStartRecording = { nav.navigate("recorder/song/$songId"); startSongRecording(songId) },
                     a4Hz = preferences.configuration.a4Hz, naming = preferences.noteNaming,
                     chordMode = preferences.chordPresentationMode, setChordMode = setChordPresentationMode,
                     chordInstrument = preferences.chordInstrument, setChordInstrument = setChordInstrument)
             }
             composable("recording/{recordingId}") { backStackEntry ->
-                recorder(backStackEntry.arguments?.getString("recordingId")) { nav.popBackStack() }
+                recorder(backStackEntry.arguments?.getString("recordingId"), { nav.popBackStack() }, null)
+            }
+            // Recording started from a song: a contextual screen, so finishing returns to the song.
+            composable("recorder/song/{songId}") {
+                recorder(null, { }, { nav.popBackStack() })
             }
             composable("metronome/context?bpm={bpm}&numerator={numerator}&denominator={denominator}", arguments = listOf(
                 navArgument("bpm") { type = androidx.navigation.NavType.IntType; defaultValue = -1 },
@@ -232,7 +236,7 @@ fun AppShell(
             tools.filter { it.route != TunerRoute.Home }.forEach { tool ->
                 composable(tool.route) {
                     if (tool.route == "recorder") {
-                        recorder(null) { }
+                        recorder(null, { }, null)
                     } else if (tool.route == "songs") {
                         SongLibraryScreen(songModel) { nav.navigate("song/$it") }
                     } else if (tool.route == "chords") {
