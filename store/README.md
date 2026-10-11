@@ -17,7 +17,7 @@ in `docs/privacy/` and are served by GitHub Pages from the `docs/` folder of the
 |---|---|---|
 | `graphics/icon-512.png` | App icon | 512×512, 32-bit PNG |
 | `graphics/feature-graphic-1024x500.png` | Feature graphic | 1024×500, 24-bit PNG, no alpha |
-| `screenshots/es/*.png`, `screenshots/en/*.png` | Phone screenshots | 1080×2160 (2:1), 5 per language |
+| `screenshots/es/*.png`, `screenshots/en/*.png` | Phone screenshots (demo set) | 1080×2160 (2:1), 8 per language: home, tuner, chords, songs, song detail, recorder, recording, metronome |
 
 ## Texts (draft)
 
@@ -124,6 +124,17 @@ the release build. Upload them (for example as unlisted videos) and paste the li
 ## How the screenshots were taken
 
 Google rejects screenshots whose long side is more than twice the short one, and the test phone is 20:9.
-The phone display was set to 1080×2160 with a density of 400 so every screen fits, the status bar was
-cleaned, and the display settings were restored afterwards. The tuner screenshot shows the listening state:
-a detected note needs a real instrument.
+The phone display was set to 1080×2160 with a density of 400 so every screen fits, and the display
+settings were restored afterwards.
+
+- **Demo data only.** They come from the `debug` build (`org.anarkey.app.dev`, separate data) with public
+  domain songs and two recordings made from the app's own chord playback, so no personal recording or
+  data is visible. Never take them from the `release` build.
+- **Language.** The app language was switched to English or Spanish (`adb shell cmd locale
+  set-app-locales org.anarkey.app.dev --locales en`) and the recording and section names were typed in
+  that language.
+- **System bars.** The phone's status bar (clock, notification and microphone indicators) and navigation
+  bar were painted over with the app background colour, so nothing from the device shows.
+- **Tuner.** It shows the listening state: a detected note needs a real instrument.
+- **Website.** `docs/assets/{tuner,chords,recorder,metronome}-{es,en}.png` are copies of these files.
+  Replace them together when the interface changes.
