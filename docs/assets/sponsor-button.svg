@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="48" viewBox="0 0 240 48" role="img" aria-label="Sponsor Anarkey on GitHub">
+  <title>Sponsor Anarkey on GitHub</title>
+  <rect x="1" y="1" width="238" height="46" rx="10" fill="#1A1410" stroke="#FF7A00" stroke-width="2"/>
+  <path transform="translate(22 12) scale(1.5)" fill="#FF7A00" d="M8 14.25.56 7.4C-1.2 5.2.27 1.5 3.3 1.5c1.9 0 3.2 1.1 4.7 2.9 1.5-1.8 2.8-2.9 4.7-2.9 3.03 0 4.5 3.7 2.74 5.9z"/>
+  <text x="56" y="30" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="700" fill="#F2EFE9" letter-spacing="0.3">Sponsor on GitHub</text>
+</svg>

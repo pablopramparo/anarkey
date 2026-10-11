@@ -1,8 +1,27 @@
-# Anarkey
+<p align="center">
+  <img src="store/graphics/feature-graphic-1024x500.png" alt="Anarkey: free the music" width="720">
+</p>
 
-### FREE THE MUSIC. NOT YOUR WALLET.
+<h3 align="center">FREE THE MUSIC. NOT YOUR WALLET.</h3>
 
-Free, open-source music tools for Android. Built for musicians, not shareholders.
+<p align="center">
+  Free, open-source music tools for Android. Built for musicians, not shareholders.
+</p>
+
+<p align="center">
+  <a href="https://github.com/sponsors/pablopramparo"><img src="docs/assets/sponsor-button.svg" alt="Sponsor Anarkey on GitHub" height="44"></a>
+</p>
+
+<p align="center">
+  <a href="https://pablopramparo.github.io/anarkey/">Website</a> ·
+  <a href="#what-does-it-do">Features</a> ·
+  <a href="#privacy-we-dont-want-your-data">Privacy</a> ·
+  <a href="#build-it-yourself">Build it</a> ·
+  <a href="#support-the-chaos-">Support</a> ·
+  <a href="LICENSE">MIT license</a>
+</p>
+
+---
 
 A tuner, recorder, songbook with chords, chord dictionary, and metronome. Everything you need to make music. Absolutely nothing you need to create an account for.
 
@@ -18,11 +37,13 @@ Everything works offline. Microphone audio stays on your device. Recordings and 
 
 _Actual screenshots. No marketing department was harmed in their creation._
 
-<img src="store/screenshots/en/01-home.png" alt="Home" width="150">
-<img src="store/screenshots/en/02-tuner.png" alt="Tuner" width="150">
-<img src="store/screenshots/en/03-chords.png" alt="Chords" width="150">
-<img src="store/screenshots/en/04-metronome.png" alt="Metronome" width="150">
-<img src="store/screenshots/en/05-recorder.png" alt="Recorder" width="150">
+<p align="center">
+  <img src="store/screenshots/en/01-home.png" alt="Home" width="150">
+  <img src="store/screenshots/en/02-tuner.png" alt="Tuner" width="150">
+  <img src="store/screenshots/en/03-chords.png" alt="Chords" width="150">
+  <img src="store/screenshots/en/04-metronome.png" alt="Metronome" width="150">
+  <img src="store/screenshots/en/05-recorder.png" alt="Recorder" width="150">
+</p>
 
 ## What does it do?
 
@@ -104,7 +125,11 @@ Yes, there is documentation. Anarchy is not an excuse for undocumented code.
 
 Anarkey is free. No ads, tracking, paid features, or subscriptions. **And that's not going to change.**
 
-If you find it useful and feel like supporting independent development, you can [sponsor my work on GitHub](https://github.com/sponsors/pablopramparo).
+If you find it useful and feel like supporting independent development, you can sponsor my work on GitHub.
+
+<p align="center">
+  <a href="https://github.com/sponsors/pablopramparo"><img src="docs/assets/sponsor-button.svg" alt="Sponsor Anarkey on GitHub" height="44"></a>
+</p>
 
 Sponsorship is entirely optional. It unlocks absolutely nothing.
 
