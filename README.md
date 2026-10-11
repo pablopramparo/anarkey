@@ -9,10 +9,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/sponsors/pablopramparo"><img src="docs/assets/sponsor-button.svg" alt="Sponsor Anarkey on GitHub" height="44"></a>
-</p>
-
-<p align="center">
   <a href="https://pablopramparo.github.io/anarkey/">Website</a> ·
   <a href="#what-does-it-do">Features</a> ·
   <a href="#privacy-we-dont-want-your-data">Privacy</a> ·
