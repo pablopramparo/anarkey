@@ -195,7 +195,13 @@ fun SongLibraryScreen(model: SongViewModel, openSong: (String) -> Unit) {
                 }
             }
             if (songs.isNotEmpty()) Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.weight(1f)) { filters() }
+                Box(Modifier.weight(1f).padding(end = 8.dp)) { filters() }
+                // Importing stays next to creating, but as a quiet outline so the orange button remains the main action.
+                OutlinedIconButton(onClick = openPicker, Modifier.size(LibraryControlHeight), shape = AppShape,
+                    border = BorderStroke(1.dp, Quiet.copy(alpha = 0.75f))) {
+                    Icon(Icons.Default.FileDownload, stringResource(R.string.exchange_import), tint = NeonSoft)
+                }
+                Spacer(Modifier.width(8.dp))
                 FilledIconButton(onClick = { creating = true }, Modifier.size(LibraryControlHeight), shape = AppShape) {
                     Icon(Icons.Default.Add, stringResource(R.string.song_new))
                 }
