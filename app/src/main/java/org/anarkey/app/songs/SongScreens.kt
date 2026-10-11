@@ -82,6 +82,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.ImeAction
 import org.anarkey.app.R
 import org.anarkey.app.recording.data.*
 import org.anarkey.app.ui.*
@@ -94,7 +99,8 @@ import org.anarkey.app.chords.InstrumentTuningControl
 fun SongLibraryScreen(model: SongViewModel, openSong: (String) -> Unit) {
     val songs by model.songs.collectAsStateWithLifecycle()
     val tags by model.tags.collectAsStateWithLifecycle()
-    var query by remember { mutableStateOf("") }
+    var query by rememberSaveable { mutableStateOf("") }
+    var searching by rememberSaveable { mutableStateOf(false) }
     var favoritesOnly by remember { mutableStateOf(false) }
     var tagFilter by remember { mutableStateOf<String?>(null) }
     var creating by remember { mutableStateOf(false) }
@@ -127,46 +133,75 @@ fun SongLibraryScreen(model: SongViewModel, openSong: (String) -> Unit) {
     val sourceSongs = if (tagFilter == null) songs else tagSongs
     val shown = sourceSongs.filter { song -> (!favoritesOnly || song.favorite) &&
         (query.isBlank() || song.title.contains(query, true) || song.artist.orEmpty().contains(query, true)) }
-    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(), singleLine = true,
-            label = { Text(stringResource(R.string.song_search)) })
-        Column(Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(favoritesOnly, { favoritesOnly = !favoritesOnly }, label = { Text(stringResource(R.string.song_filter_favorites)) })
-                var expanded by remember { mutableStateOf(false) }
-                Box {
-                    SelectorButton(selectedTag?.name ?: stringResource(R.string.song_filter_tag), onClick = { expanded = true },
-                        textStyle = MaterialTheme.typography.labelSmall, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp))
-                    DropdownMenu(expanded, { expanded = false }) {
-                        DropdownMenuItem(text = { Text(stringResource(R.string.song_filter_all)) }, onClick = { tagFilter = null; expanded = false })
-                        tags.forEach { tag -> DropdownMenuItem(text = { Text(tag.name) }, onClick = { tagFilter = tag.id; expanded = false }) }
-                    }
+    val closeSearch = { searching = false; query = "" }
+    BackHandler(enabled = searching, onBack = closeSearch)
+    val tagFilterLabel = selectedTag?.name ?: stringResource(R.string.song_filter_tag)
+    val filters: @Composable () -> Unit = {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LibraryFilter(stringResource(R.string.song_filter_favorites), active = favoritesOnly, onClick = { favoritesOnly = !favoritesOnly },
+                leading = if (favoritesOnly) Icons.Default.Check else null)
+            var expanded by remember { mutableStateOf(false) }
+            Box {
+                val clearDescription = stringResource(R.string.song_filter_clear, tagFilterLabel)
+                LibraryFilter(tagFilterLabel, active = selectedTag != null, onClick = { expanded = true }, modifier = Modifier.widthIn(max = 180.dp)) {
+                    if (selectedTag != null) Icon(Icons.Default.Close, clearDescription,
+                        Modifier.size(20.dp).clickable { tagFilter = null })
+                    else Icon(Icons.Default.KeyboardArrowDown, null, Modifier.size(20.dp))
                 }
-            }
-            if (songs.isNotEmpty()) Row(Modifier.align(Alignment.End), verticalAlignment = Alignment.CenterVertically) {
-                // Creating and importing are the two ways to add a song, so both are in plain sight.
-                OutlinedButton(onClick = openPicker, shape = AppShape, contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)) {
-                    Icon(Icons.Default.FileDownload, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.exchange_import_short))
-                }
-                Spacer(Modifier.width(8.dp))
-                Button(onClick = { creating = true }, shape = AppShape, contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)) {
-                    Icon(Icons.Default.Add, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.song_new))
-                }
-                Box {
-                    val moreDescription = stringResource(R.string.exchange_more)
-                    IconButton(onClick = { libraryMenu = true }, Modifier.semantics { contentDescription = moreDescription }) {
-                        Icon(Icons.Default.MoreVert, null, tint = Muted)
-                    }
-                    DropdownMenu(libraryMenu, { libraryMenu = false }) {
-                        if (demoMissing) DropdownMenuItem(text = { Text(stringResource(R.string.song_demo_add)) }, onClick = { libraryMenu = false; addDemos() })
-                        DropdownMenuItem(text = { Text(stringResource(R.string.exchange_backup)) },
-                            onClick = { libraryMenu = false; model.exportNative(null) { backupFile = it } })
-                    }
+                DropdownMenu(expanded, { expanded = false }) {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.song_filter_all)) }, onClick = { tagFilter = null; expanded = false })
+                    tags.forEach { tag -> DropdownMenuItem(text = { Text(tag.name) }, onClick = { tagFilter = tag.id; expanded = false }) }
                 }
             }
         }
+    }
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        if (searching) {
+            val focus = remember { FocusRequester() }
+            LaunchedEffect(Unit) { focus.requestFocus() }
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = closeSearch) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.song_search_close)) }
+                OutlinedTextField(query, { query = it }, Modifier.weight(1f).focusRequester(focus), singleLine = true,
+                    placeholder = { Text(stringResource(R.string.song_search), color = Muted) },
+                    trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) {
+                        Icon(Icons.Default.Close, stringResource(R.string.song_search_clear))
+                    } },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    shape = FormFieldShape, colors = AnarkeyFormFieldColors())
+            }
+            Spacer(Modifier.height(8.dp))
+            filters()
+        } else {
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.songs_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+                if (songs.isNotEmpty()) {
+                    IconButton(onClick = { searching = true }) {
+                        Icon(Icons.Default.Search, stringResource(R.string.song_search_open))
+                    }
+                    Box {
+                        val moreDescription = stringResource(R.string.exchange_more)
+                        IconButton(onClick = { libraryMenu = true }) {
+                            Icon(Icons.Default.MoreVert, moreDescription, tint = Muted)
+                        }
+                        DropdownMenu(libraryMenu, { libraryMenu = false }) {
+                            DropdownMenuItem(text = { Text(stringResource(R.string.exchange_import)) },
+                                leadingIcon = { Icon(Icons.Default.FileDownload, null, tint = NeonSoft) },
+                                onClick = { libraryMenu = false; openPicker() })
+                            if (demoMissing) DropdownMenuItem(text = { Text(stringResource(R.string.song_demo_add)) }, onClick = { libraryMenu = false; addDemos() })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.exchange_backup)) },
+                                onClick = { libraryMenu = false; model.exportNative(null) { backupFile = it } })
+                        }
+                    }
+                }
+            }
+            if (songs.isNotEmpty()) Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) { filters() }
+                FilledIconButton(onClick = { creating = true }, Modifier.size(LibraryControlHeight), shape = AppShape) {
+                    Icon(Icons.Default.Add, stringResource(R.string.song_new))
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
         if (shown.isEmpty()) {
             if (songs.isEmpty()) Column(Modifier.fillMaxWidth().padding(top = 40.dp, start = 12.dp, end = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -187,7 +222,14 @@ fun SongLibraryScreen(model: SongViewModel, openSong: (String) -> Unit) {
                         Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
                             Text(song.title, style = MaterialTheme.typography.titleMedium)
                             song.artist?.let { Text(it, color = Muted, style = MaterialTheme.typography.bodySmall) }
-                            song.bpm?.let { Text("$it · ${if (song.timeNumerator == 6 && song.timeDenominator == 8) contextString(R.string.song_bpm_dotted_quarter) else contextString(R.string.song_bpm_quarter)}", color = NeonSoft, style = MaterialTheme.typography.labelSmall) }
+                            song.bpm?.let { bpm ->
+                                val dotted = song.timeNumerator == 6 && song.timeDenominator == 8
+                                // The note value is shown only when it is not the usual quarter note.
+                                val spoken = stringResource(R.string.song_bpm_short, bpm) +
+                                    if (dotted) " · " + stringResource(R.string.song_note_dotted_quarter) else ""
+                                Text(stringResource(R.string.song_bpm_short, bpm) + if (dotted) " · ♩." else "", color = NeonSoft,
+                                    style = MaterialTheme.typography.labelSmall, modifier = Modifier.semantics { contentDescription = spoken })
+                            }
                         }
                         Icon(if (song.favorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             stringResource(R.string.song_favorite), tint = if (song.favorite) NeonSoft else Muted,
@@ -217,6 +259,26 @@ fun SongLibraryScreen(model: SongViewModel, openSong: (String) -> Unit) {
             confirmButton = { TextButton(onClick = model::clearExchangeError) { Text(stringResource(android.R.string.ok)) } })
     }
 }
+
+@Composable
+private fun LibraryFilter(label: String, active: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier,
+    leading: ImageVector? = null, trailing: @Composable (() -> Unit)? = null) {
+    // The same height and padding whether the control toggles or opens a menu; active ones are tinted and outlined in orange.
+    Surface(selected = active, onClick = onClick, modifier = modifier.height(LibraryControlHeight), shape = AppShape,
+        color = if (active) NeonSoft.copy(alpha = 0.16f) else Color.Transparent,
+        contentColor = if (active) NeonSoft else MaterialTheme.colorScheme.onSurface,
+        border = BorderStroke(1.dp, if (active) NeonSoft else Quiet.copy(alpha = 0.75f))) {
+        Row(Modifier.padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (leading != null) { Icon(leading, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)) }
+            Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+            if (trailing != null) { Spacer(Modifier.width(6.dp)); trailing() }
+        }
+    }
+}
+
+private val LibraryControlHeight = 44.dp
+
 
 @Composable
 private fun CreateSongDialog(onDismiss: () -> Unit, onCreate: (String) -> Unit) {

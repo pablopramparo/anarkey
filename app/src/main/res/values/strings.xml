@@ -434,7 +434,12 @@
     <string name="song_delete_body">Its sections and lyrics will be deleted. Linked recordings will remain in the recorder.</string>
     <string name="song_filter_all">All</string>
     <string name="song_filter_favorites">Favorites</string>
-    <string name="song_filter_tag">Tag</string>
+    <string name="song_filter_tag">Tags</string>
+    <string name="song_filter_clear">Clear filter: %1$s</string>
+    <string name="song_note_dotted_quarter">Dotted quarter note</string>
+    <string name="song_search_open">Search songs</string>
+    <string name="song_search_close">Close search</string>
+    <string name="song_search_clear">Clear search</string>
     <string name="song_reorder_up">Move up</string>
     <string name="song_reorder_down">Move down</string>
     <string name="song_error_bpm">BPM must be between 1 and 400.</string>

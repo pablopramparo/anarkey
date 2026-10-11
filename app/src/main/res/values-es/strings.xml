@@ -433,7 +433,12 @@
     <string name="song_delete_body">Se eliminarán sus secciones y letra. Las grabaciones vinculadas seguirán en el grabador.</string>
     <string name="song_filter_all">Todas</string>
     <string name="song_filter_favorites">Favoritas</string>
-    <string name="song_filter_tag">Etiqueta</string>
+    <string name="song_filter_tag">Etiquetas</string>
+    <string name="song_filter_clear">Quitar filtro: %1$s</string>
+    <string name="song_note_dotted_quarter">Negra con puntillo</string>
+    <string name="song_search_open">Buscar canciones</string>
+    <string name="song_search_close">Cerrar búsqueda</string>
+    <string name="song_search_clear">Borrar búsqueda</string>
     <string name="song_reorder_up">Subir</string>
     <string name="song_reorder_down">Bajar</string>
     <string name="song_error_bpm">El BPM debe estar entre 1 y 400.</string>
