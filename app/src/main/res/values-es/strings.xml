@@ -236,7 +236,7 @@
     <string name="metronome_description">Seguí tu propio ritmo.</string>
     <string name="credits_title">Créditos</string>
     <string name="credits_version">Versión %1$s</string>
-    <string name="credits_license">Anarkey es software libre bajo licencia MIT, hecho por los colaboradores de Anarkey. Gratis, sin anuncios, cuentas ni seguimiento.</string>
+    <string name="credits_license">Anarkey es software libre bajo licencia GPLv3, hecho por los colaboradores de Anarkey. Gratis, sin anuncios, cuentas ni seguimiento.</string>
     <string name="credits_yin">La detección de tono usa el algoritmo YIN, adaptado de Tunify, de Stavros Barousis (licencia MIT).</string>
     <string name="credits_libraries">Hecho con Kotlin, Jetpack Compose, Room, DataStore, Navigation y Media3, todos de código abierto (Apache-2.0).</string>
     <string name="credits_privacy">Política de privacidad</string>

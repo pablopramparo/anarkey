@@ -16,5 +16,5 @@ Galaxy S21.
 | `s21-e2-damped-capture.wav` | 1.8 s | Open E string stopped with the hand |
 | `s21-e2-decay-capture.wav` | 3.7 s | Open E string left to decay to the noise floor |
 
-They are released with the project under its licence (MIT). Add new recordings only if they contain
+They are released with the project under its licence (GPLv3). Add new recordings only if they contain
 no speech or other identifiable sound, and describe them in this table.

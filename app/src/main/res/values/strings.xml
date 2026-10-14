@@ -237,7 +237,7 @@
     <string name="metronome_description">Keep your own time.</string>
     <string name="credits_title">Credits</string>
     <string name="credits_version">Version %1$s</string>
-    <string name="credits_license">Anarkey is free software under the MIT license, made by the Anarkey contributors. Free, with no ads, accounts or tracking.</string>
+    <string name="credits_license">Anarkey is free software under the GPLv3 license, made by the Anarkey contributors. Free, with no ads, accounts or tracking.</string>
     <string name="credits_yin">Pitch detection uses the YIN algorithm, adapted from Tunify by Stavros Barousis (MIT license).</string>
     <string name="credits_libraries">Built with Kotlin, Jetpack Compose, Room, DataStore, Navigation and Media3, all open source (Apache-2.0).</string>
     <string name="credits_privacy">Privacy policy</string>

@@ -1,6 +1,6 @@
 # Brand assets
 
-The code of Anarkey is MIT-licensed (see [LICENSE](../LICENSE)). **The name "Anarkey" and its logo are not.**
+The code of Anarkey is licensed under the GPLv3 (see [LICENSE](../LICENSE)). **The name "Anarkey" and its logo are not.**
 
 ## What this covers
 
@@ -14,7 +14,7 @@ The code of Anarkey is MIT-licensed (see [LICENSE](../LICENSE)). **The name "Ana
 ## What you can do
 
 - Build the app from source, run it and study it.
-- Fork the project, modify it and redistribute it under the MIT license.
+- Fork the project, modify it and redistribute it under the GPLv3, keeping the same license and source available.
 - Say that your work is based on Anarkey, link to this repository and describe it accurately.
 - Show screenshots of Anarkey when you write about it.
 
@@ -25,7 +25,7 @@ The code of Anarkey is MIT-licensed (see [LICENSE](../LICENSE)). **The name "Ana
 - Use the logo or the name to suggest that the maintainers endorse your work.
 
 If you distribute a fork, change the app name, the application id (`org.anarkey.app`), the icon and the logo. The
-code under MIT is yours to reuse; the identity is what tells people which app is the original.
+code under GPLv3 is yours to reuse; the identity is what tells people which app is the original.
 
 ## Origin of the artwork
 
