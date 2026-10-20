@@ -124,6 +124,12 @@
     <string name="markers_title">Marcadores</string>
     <string name="share">Compartir</string>
     <string name="export">Exportar</string>
+    <string name="export_zip_button">Exportar zip</string>
+    <string name="export_zip_title">Exportar grabaciones</string>
+    <string name="export_zip_hint">Elegí dónde guardar un .zip, por ejemplo la carpeta Descargas. Cada sesión queda como una carpeta adentro.</string>
+    <string name="export_zip_confirm">Exportar (%1$d)</string>
+    <string name="export_zip_done">Se exportaron %1$d grabaciones</string>
+    <string name="export_zip_failed">No se pudieron exportar las grabaciones</string>
     <string name="marker_note">Nota del marcador</string>
     <string name="marker_add_short">Agregar</string>
     <string name="marker_new">Nuevo marcador</string>

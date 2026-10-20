@@ -49,5 +49,7 @@ class RecorderViewModel(application: Application) : AndroidViewModel(application
     fun delete(row: RecordingEntity) = viewModelScope.launch { app.recordings.delete(row.id) }
     suspend fun shareUri(row: RecordingEntity) = app.recordings.shareUri(getApplication<Application>(), row.id)
     suspend fun export(row: RecordingEntity, uri: android.net.Uri) = app.recordings.export(row.id, uri, getApplication<Application>().contentResolver)
+    suspend fun exportZip(ids: Collection<String>, uri: android.net.Uri) =
+        app.recordings.exportZip(ids, uri, getApplication<Application>().contentResolver)
     fun playbackFile(row: RecordingEntity) = app.recordings.sourceFor(row)
 }

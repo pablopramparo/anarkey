@@ -125,6 +125,12 @@
     <string name="markers_title">Markers</string>
     <string name="share">Share</string>
     <string name="export">Export</string>
+    <string name="export_zip_button">Export zip</string>
+    <string name="export_zip_title">Export recordings</string>
+    <string name="export_zip_hint">Choose where to save a .zip, for example the Downloads folder. Each session becomes a folder inside it.</string>
+    <string name="export_zip_confirm">Export (%1$d)</string>
+    <string name="export_zip_done">Exported %1$d recordings</string>
+    <string name="export_zip_failed">The recordings could not be exported</string>
     <string name="marker_note">Marker note</string>
     <string name="marker_add_short">Add</string>
     <string name="marker_new">New marker</string>

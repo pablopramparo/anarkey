@@ -63,6 +63,15 @@ class MainActivity : ComponentActivity() {
         val row = pendingExport; pendingExport = null
         if (uri != null && row != null) lifecycleScope.launch { runCatching { recorder.export(row, uri) } }
     }
+    private var pendingZipIds: List<String> = emptyList()
+    private val exportZip = registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        val ids = pendingZipIds; pendingZipIds = emptyList()
+        if (uri != null && ids.isNotEmpty()) lifecycleScope.launch {
+            val written = runCatching { recorder.exportZip(ids, uri) }.getOrNull()
+            android.widget.Toast.makeText(this@MainActivity, if (written != null && written > 0)
+                getString(R.string.export_zip_done, written) else getString(R.string.export_zip_failed), android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
     private val requestNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted && pendingRecordingStart) startPendingRecording()
         else if (!granted) { pendingRecordingStart = false; pendingSongId = null; notificationDenied.value = true }
@@ -108,6 +117,10 @@ class MainActivity : ComponentActivity() {
                             RecorderScreen(recorder, { startRecordingRequest() },
                                 onShare = ::shareRecording,
                                 onExport = { row -> pendingExport = row; exportFile.launch(row.displayName + ".m4a") },
+                                onExportZip = { ids ->
+                                    pendingZipIds = ids
+                                    exportZip.launch("anarkey-recordings-" + java.time.LocalDate.now() + ".zip")
+                                },
                                 initialRecordingId = recordingId, onDismissInitialRecording = onDismissInitial,
                                 onRecordingFinished = onFinished)
                         },

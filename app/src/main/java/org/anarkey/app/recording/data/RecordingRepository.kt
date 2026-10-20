@@ -226,6 +226,39 @@ class RecordingRepository(context: android.content.Context) {
         output.use { destinationStream -> FileInputStream(source).use { input -> input.copyTo(destinationStream) } }
     }
 
+    /**
+     * Writes the given recordings into one zip at [destination]: recordings of a session go in a folder named after it,
+     * the rest at the root. Returns how many files were written; rows that are not exportable are skipped.
+     */
+    suspend fun exportZip(ids: Collection<String>, destination: Uri, contentResolver: ContentResolver): Int = withContext(Dispatchers.IO) {
+        val rows = ids.mapNotNull { find(it) }.filter { it.status == RecordingStatus.READY || it.status == RecordingStatus.RECOVERY_REQUIRED }
+            .sortedBy { it.createdAtMs }
+        val sessionNames = rows.mapNotNull { it.sessionId }.distinct().associateWith { database.sessions().find(it)?.name }
+        val used = HashSet<String>()
+        var written = 0
+        val output = contentResolver.openOutputStream(destination, "w") ?: throw IOException("Cannot open export destination")
+        java.util.zip.ZipOutputStream(output.buffered()).use { zip ->
+            // The audio is already compressed, so deflating it again would only cost time.
+            zip.setLevel(java.util.zip.Deflater.NO_COMPRESSION)
+            for (row in rows) {
+                val source = sourceFor(row)
+                val folder = row.sessionId?.let { sessionNames[it] }?.let { zipSafeName(it) + "/" }.orEmpty()
+                val base = zipSafeName(row.displayName)
+                var entry = "$folder$base.m4a"
+                var n = 2
+                while (!used.add(entry.lowercase(Locale.ROOT))) entry = "$folder$base (${n++}).m4a"
+                zip.putNextEntry(java.util.zip.ZipEntry(entry).apply { time = row.createdAtMs })
+                FileInputStream(source).use { it.copyTo(zip) }
+                zip.closeEntry()
+                written++
+            }
+        }
+        written
+    }
+
+    private fun zipSafeName(name: String) =
+        name.trim().replace(Regex("[\\/:*?\"<>|\\p{Cntrl}]"), "_").take(80).trim().trim('.').ifEmpty { "recording" }
+
     fun sourceFor(row: RecordingEntity): File {
         val final = files.byDatabaseName(row.audioFileName)
         if (final.isFile && final.length() > 0) return final

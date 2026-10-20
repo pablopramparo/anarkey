@@ -55,7 +55,8 @@ import org.anarkey.core.recording.WaveformCodec
 
 @Composable
 fun RecorderScreen(model: RecorderViewModel, requestPermission: () -> Unit,
-    onShare: (RecordingEntity) -> Unit, onExport: (RecordingEntity) -> Unit, initialRecordingId: String? = null,
+    onShare: (RecordingEntity) -> Unit, onExport: (RecordingEntity) -> Unit,
+    onExportZip: (List<String>) -> Unit = {}, initialRecordingId: String? = null,
     onDismissInitialRecording: () -> Unit = {}, onRecordingFinished: (() -> Unit)? = null) {
     val recordings by model.recordings.collectAsStateWithLifecycle()
     val sessions by model.sessions.collectAsStateWithLifecycle()
@@ -71,6 +72,7 @@ fun RecorderScreen(model: RecorderViewModel, requestPermission: () -> Unit,
     var selectedSession by remember { mutableStateOf<String?>(null) }
     var selectedRecording by remember { mutableStateOf<RecordingEntity?>(null) }
     var createSession by remember { mutableStateOf(false) }
+    var exportDialog by remember { mutableStateOf(false) }
     var editingSession by remember { mutableStateOf<SessionEntity?>(null) }
     var deleteRecording by remember { mutableStateOf<RecordingEntity?>(null) }
     var openedInitialRecording by remember(initialRecordingId) { mutableStateOf(false) }
@@ -112,6 +114,7 @@ fun RecorderScreen(model: RecorderViewModel, requestPermission: () -> Unit,
                 }
                 if (selectedSession == "__sessions__") {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = { exportDialog = true }) { Text(stringResource(R.string.export_zip_button)) }
                         TextButton(onClick = { createSession = true }) { Text(stringResource(R.string.session_new)) }
                     }
                 } else {
@@ -121,7 +124,8 @@ fun RecorderScreen(model: RecorderViewModel, requestPermission: () -> Unit,
                         "__none__" -> stringResource(R.string.no_session)
                         else -> sessions.firstOrNull { it.id == selectedSession }?.name ?: stringResource(R.string.recording_filter_all)
                     }
-                    Box {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.weight(1f)) {
                         SelectorButton(filterName, onClick = { filterMenu = true })
                         DropdownMenu(expanded = filterMenu, onDismissRequest = { filterMenu = false }) {
                             DropdownMenuItem(text = { Text(stringResource(R.string.recording_filter_all)) },
@@ -131,6 +135,8 @@ fun RecorderScreen(model: RecorderViewModel, requestPermission: () -> Unit,
                             sessions.forEach { session -> DropdownMenuItem(text = { Text(session.name) },
                                 onClick = { selectedSession = session.id; filterMenu = false }) }
                         }
+                    }
+                    TextButton(onClick = { exportDialog = true }) { Text(stringResource(R.string.export_zip_button)) }
                     }
                 }
             }
@@ -186,6 +192,8 @@ fun RecorderScreen(model: RecorderViewModel, requestPermission: () -> Unit,
         }
     }
 
+    if (exportDialog) ExportZipDialog(recordings, sessions, onDismiss = { exportDialog = false },
+        onConfirm = { ids -> exportDialog = false; onExportZip(ids) })
     if (createSession) SessionEditor(null, { name, notes -> model.createSession(name, notes); createSession = false }, { createSession = false })
     editingSession?.let { session -> SessionEditor(session,
         { name, notes -> model.saveSession(session.id, name, notes); editingSession = null },
@@ -198,6 +206,40 @@ fun RecorderScreen(model: RecorderViewModel, requestPermission: () -> Unit,
             text = { Text(row.displayName) }, confirmButton = { TextButton(onClick = { model.delete(row); deleteRecording = null; if (initialRecordingId != null) onDismissInitialRecording() }) { Text(stringResource(R.string.delete)) } },
             dismissButton = { TextButton(onClick = { deleteRecording = null }) { Text(stringResource(android.R.string.cancel)) } })
     }
+}
+
+/** Picks whole sessions (and the recordings without one) to bundle into a single zip. */
+@Composable private fun ExportZipDialog(recordings: List<RecordingEntity>, sessions: List<SessionEntity>,
+    onDismiss: () -> Unit, onConfirm: (List<String>) -> Unit) {
+    fun exportable(r: RecordingEntity) = r.status == RecordingStatus.READY || r.status == RecordingStatus.RECOVERY_REQUIRED
+    // Key null is "no session"; only groups that hold something exportable are offered.
+    val groups = (listOf<SessionEntity?>(null) + sessions).map { s -> s to recordings.filter { exportable(it) && it.sessionId == s?.id } }
+        .filter { it.second.isNotEmpty() }
+    var selected by remember { mutableStateOf(groups.map { it.first?.id }.toSet()) }
+    val ids = groups.filter { it.first?.id in selected }.flatMap { g -> g.second.map { it.id } }
+    AlertDialog(onDismissRequest = onDismiss, title = { Text(stringResource(R.string.export_zip_title)) },
+        text = { Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+            if (groups.isEmpty()) Text(stringResource(R.string.recording_empty), color = NeonSoft)
+            else {
+                Text(stringResource(R.string.export_zip_hint), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
+                val all = selected.size == groups.size
+                Row(Modifier.fillMaxWidth().clickable { selected = if (all) emptySet() else groups.map { it.first?.id }.toSet() },
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(all, null); Text(stringResource(R.string.recording_filter_all), Modifier.padding(start = 8.dp))
+                }
+                groups.forEach { (session, rows) ->
+                    val key = session?.id
+                    Row(Modifier.fillMaxWidth().clickable { selected = if (key in selected) selected - key else selected + key },
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(key in selected, null)
+                        Text(session?.name ?: stringResource(R.string.no_session), Modifier.weight(1f).padding(start = 8.dp), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(rows.size.toString(), color = NeonSoft)
+                    }
+                }
+            }
+        } },
+        confirmButton = { TextButton(enabled = ids.isNotEmpty(), onClick = { onConfirm(ids) }) { Text(stringResource(R.string.export_zip_confirm, ids.size)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } })
 }
 
 @Composable private fun EmptyRecorderMessage(message: String) {
