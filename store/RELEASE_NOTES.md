@@ -2,6 +2,32 @@
 
 "What's new" is limited to 500 characters per language. Paste the text of the version being uploaded.
 
+## 0.2.3-prototype (versionCode 18)
+
+Replaces version 17 in the closed test. Adds zip export of recordings and a tidier song library.
+
+### Español (es-US / es-419)
+
+```
+Novedades:
+• Exportá tus grabaciones: todas o por sesión, en un .zip que guardás donde quieras (por ejemplo Descargas).
+• Biblioteca de canciones más ordenada: búsqueda, un solo botón para crear y botón para importar.
+• Grabar desde una canción: al terminar volvés a la canción.
+• Importá y compartí canciones en ChordPro o como copia de Anarkey.
+• Ahora Anarkey es software libre bajo licencia GPLv3.
+```
+
+### English (en-US)
+
+```
+What's new:
+• Export your recordings: all of them or by session, as a .zip you save anywhere (for example Downloads).
+• Tidier song library: search, a single create button and an import button.
+• Recording from a song: when you finish you return to the song.
+• Import and share songs as ChordPro or as an Anarkey copy.
+• Anarkey is now free software under the GPLv3 license.
+```
+
 ## 0.2.2-prototype (versionCode 17)
 
 Replaces version 16 in the closed test. Fixes a navigation trap when recording from a song.
