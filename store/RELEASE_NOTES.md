@@ -4,7 +4,7 @@
 
 ## 0.2.4-prototype (versionCode 19)
 
-Replaces version 18 in the closed test. Fixes a tap on a tool that could be ignored when reopening the app.
+Replaces version 18 in the closed test. Fixes a tap on a tool that could be ignored when reopening the app. Uploaded to Google Play (2026-10-22), with these notes.
 
 ### Español (es-US / es-419)
 
