@@ -142,10 +142,14 @@ fun AppShell(
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route
-    val secondary = route == "settings" || route == TunerRoute.Context || route?.startsWith("song/") == true || route?.startsWith("recording/") == true || route == "recorder/song/{songId}" ||route?.startsWith("metronome/context") == true
-    val selected = if (route == TunerRoute.Context) TunerRoute.Home else route
+    fun isSecondary(route: String?) = route == "settings" || route == TunerRoute.Context || route?.startsWith("song/") == true || route?.startsWith("recording/") == true || route == "recorder/song/{songId}" ||route?.startsWith("metronome/context") == true
+    fun toolOf(route: String?) = if (route == TunerRoute.Context) TunerRoute.Home else route
+    val secondary = isSecondary(route)
+    val selected = toolOf(route)
     fun selectTool(destination: String) {
-        if (selected == destination && !secondary) return
+        // Read the destination at tap time: the composed `route` can lag behind the back stack and swallow the tap.
+        val current = nav.currentDestination?.route
+        if (toolOf(current) == destination && !isSecondary(current)) return
         nav.navigate(destination) {
             popUpTo(nav.graph.findStartDestination().id) { saveState = true }
             launchSingleTop = true

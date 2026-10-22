@@ -2,6 +2,30 @@
 
 "What's new" is limited to 500 characters per language. Paste the text of the version being uploaded.
 
+## 0.2.4-prototype (versionCode 19)
+
+Replaces version 18 in the closed test. Fixes a tap on a tool that could be ignored when reopening the app.
+
+### Español (es-US / es-419)
+
+```
+Novedades:
+• Corregido: a veces, al volver a abrir la app, el botón del afinador no respondía hasta entrar en otra herramienta.
+• Exportá tus grabaciones: todas o por sesión, en un .zip que guardás donde quieras (por ejemplo Descargas).
+• Biblioteca de canciones más ordenada: búsqueda, un solo botón para crear y botón para importar.
+• Ahora Anarkey es software libre bajo licencia GPLv3.
+```
+
+### English (en-US)
+
+```
+What's new:
+• Fixed: sometimes, when reopening the app, the tuner button did not respond until you opened another tool.
+• Export your recordings: all of them or by session, as a .zip you save anywhere (for example Downloads).
+• Tidier song library: search, a single create button and an import button.
+• Anarkey is now free software under the GPLv3 license.
+```
+
 ## 0.2.3-prototype (versionCode 18)
 
 Replaces version 17 in the closed test. Adds zip export of recordings and a tidier song library.
