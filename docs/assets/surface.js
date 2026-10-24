@@ -80,7 +80,7 @@
   const SCENES = {
     hero: {
       wide: { eye: [1.6, 2.6, 5.0], look: [1.8, -0.4, -4.5], fov: 46, shape: [13, 22, 1.5, 2.8], clear: [0.34, 0.62, 0.75, 0.97] },
-      narrow: { eye: [0.4, 3.0, 5.2], look: [0.3, -0.7, -3.8], fov: 58, shape: [10, 20, 1.7, 0.6], freq: 1.5, bias: 0.95, clear: [-1, 0, 0.42, 0.58] },
+      narrow: { eye: [0.4, 3.0, 5.2], look: [0.3, -0.7, -3.8], fov: 58, shape: [10, 20, 1.7, 0.6], freq: 1.5, bias: 0.9, clear: [-1, 0, 0.36, 0.56] },
       time: 3
     },
     closing: {
