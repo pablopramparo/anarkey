@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="store/graphics/feature-graphic-1024x500.png" alt="Anarkey: free the music" width="720">
+  <img src="store/graphics/feature-graphic-1024x500.png?v=2" alt="Anarkey: free the music" width="720">
 </p>
 
 <h3 align="center">FREE THE MUSIC. NOT YOUR WALLET.</h3>
