@@ -95,7 +95,7 @@ button{cursor:pointer;border:1px solid var(--line);border-radius:6px;background:
 /* ---------- Mobile ---------- */
 @media(max-width:700px){.wrap{width:calc(100% - 40px)}.header{padding-block:18px}.header .brand{width:180px}.header nav{gap:16px}.header nav>a{display:none}
 :root{--hh:80px}.hero{margin-top:calc(var(--hh) * -1);padding-top:var(--hh)}.hero-grid{grid-template-columns:1fr;gap:0;min-height:0;padding-block:36px 10px}.hero h1{font-size:clamp(66px,20.5vw,100px);margin-bottom:24px}.intro{font-size:20px}.hero .eyebrow{font-size:10px;letter-spacing:1.4px}.hero-copy .actions{flex-direction:column;align-items:stretch;margin-top:28px}
-.hero-art{min-height:520px;margin-top:6px;overflow:clip}.hero-phone{width:290px;margin-bottom:-90px}.art-label{right:0;top:10px}
+.hero-art{min-height:760px;margin-top:6px;overflow:clip}.hero-phone{width:290px;margin-bottom:-90px}.art-label{right:0;top:10px}
 .values{justify-content:center;gap:12px 20px;padding-block:20px}
 .tools{padding-top:30px}.tools-head{padding-block:50px 40px}.tools-head h2{font-size:clamp(44px,13vw,64px)}
 .index{font-size:130px;left:-6px}.tool h3{font-size:clamp(42px,12.5vw,60px);margin-bottom:20px}.lead{font-size:16px}

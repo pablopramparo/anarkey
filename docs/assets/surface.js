@@ -8,10 +8,12 @@
   uniform float uT;
   uniform vec4 uShape;   // x: half width, y: depth, z: amplitude, w: loudest x
   uniform vec3 uPointer; // x, z on the surface plane and how strongly it is felt
+  uniform float uFreq;   // hill frequency: higher on narrow screens, where less of the surface is visible
   out vec3 vN; out vec3 vW; out float vH; out float vEdge;
 
   // Broad, slow hills: a few low-frequency waves that drift and interfere, with the swell centred behind the phone.
-  float height(vec2 p, float t) {
+  float height(vec2 p0, float t) {
+    vec2 p = vec2(p0.x - uShape.w, p0.y) * uFreq + vec2(uShape.w, 0.0);
     float spread = uShape.x * 0.75;
     float bell = exp(-pow((p.x - uShape.w) / spread, 2.0));
     float env = 0.35 + 0.65 * bell;
@@ -19,7 +21,7 @@
     float b = sin(p.y * 0.5 - t * 0.28 + p.x * 0.16);
     float c = sin(p.x * 0.9 + p.y * 0.4 - t * 0.45) * 0.28;
     float wave = env * uShape.z * (a * 0.8 + b * 0.6 + c);
-    float d = length(p - uPointer.xy);
+    float d = length(p0 - uPointer.xy);
     wave += uPointer.z * uShape.z * 0.16 * exp(-d * d * 0.045) * cos(d * 0.8 - t * 1.6);
     return wave;
   }
@@ -43,6 +45,7 @@
   in vec3 vN; in vec3 vW; in float vH; in float vEdge;
   uniform vec3 uCam;
   uniform vec2 uRes;
+  uniform float uBias;   // lifts the shading on small screens, where little of the surface is on show
   uniform vec4 uClear;   // visible from x0 to x1 (left ramp), fades out from y0 to y1 (top ramp), in screen units
   out vec4 outColor;
 
@@ -58,7 +61,7 @@
     vec2 q = abs(fract(g - 0.5) - 0.5) / fwidth(g);
     float line = (1.0 - clamp(min(q.x, q.y) - 0.15, 0.0, 1.0)) * (1.0 - smoothstep(0.35, 0.9, fwidth(g.x) + fwidth(g.y)));
     float glow = 0.12 + 1.5 * diffuse * diffuse + rim * 0.5 + smoothstep(0.3, 1.0, vH) * 0.5;
-    float volume = smoothstep(-0.55, 0.85, vH);          // valleys fall into shadow, crests stay lit
+    float volume = smoothstep(-0.55, 0.85, vH + uBias);          // valleys fall into shadow, crests stay lit
     glow *= 0.01 + 0.99 * volume * volume;
     vec3 ink = vec3(1.0, 0.5, 0.13) * glow;
     vec3 fill = vec3(0.45, 0.16, 0.03) * (0.02 + 0.6 * diffuse * diffuse);
@@ -77,12 +80,12 @@
   const SCENES = {
     hero: {
       wide: { eye: [1.6, 2.6, 5.0], look: [1.8, -0.4, -4.5], fov: 46, shape: [13, 22, 1.5, 2.8], clear: [0.34, 0.62, 0.75, 0.97] },
-      narrow: { eye: [0.4, 3.0, 5.6], look: [0.3, -0.8, -3.5], fov: 54, shape: [10, 20, 1.5, 0.6], clear: [-1, 0, 0.36, 0.58] },
+      narrow: { eye: [0.4, 3.0, 5.2], look: [0.3, -0.7, -3.8], fov: 58, shape: [10, 20, 1.7, 0.6], freq: 1.5, bias: 0.95, clear: [-1, 0, 0.42, 0.58] },
       time: 3
     },
     closing: {
       wide: { eye: [0, 3.0, 5.0], look: [0, -0.6, -4.5], fov: 44, shape: [14, 22, 0.85, 0], clear: [-1, 0, 0.5, 0.78] },
-      narrow: { eye: [0, 3.2, 5.6], look: [0, -0.8, -4], fov: 54, shape: [10, 20, 1.3, 0], clear: [-1, 0, 0.3, 0.5] },
+      narrow: { eye: [0, 3.2, 5.6], look: [0, -0.8, -4], fov: 54, shape: [10, 20, 2.1, 0], freq: 2.2, bias: 0.5, clear: [-1, 0, 0.3, 0.5] },
       time: 3.2
     }
   };
@@ -147,7 +150,7 @@
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 
     const u = name => gl.getUniformLocation(program, name);
-    const uniforms = { vp: u('uVP'), t: u('uT'), shape: u('uShape'), cam: u('uCam'), res: u('uRes'), clear: u('uClear'), pointer: u('uPointer') };
+    const uniforms = { vp: u('uVP'), t: u('uT'), shape: u('uShape'), cam: u('uCam'), res: u('uRes'), clear: u('uClear'), pointer: u('uPointer'), freq: u('uFreq'), bias: u('uBias') };
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.enable(gl.BLEND);
@@ -196,6 +199,8 @@
       gl.uniform3fv(uniforms.cam, config.eye);
       gl.uniform2f(uniforms.res, width, height);
       gl.uniform4fv(uniforms.clear, config.clear);
+      gl.uniform1f(uniforms.freq, config.freq || 1);
+      gl.uniform1f(uniforms.bias, config.bias || 0);
       // ease towards the target so the surface answers softly, and let it settle when the pointer leaves
       pointer.x += (pointer.tx - pointer.x) * 0.12; pointer.z += (pointer.tz - pointer.z) * 0.12;
       pointer.strength += (pointer.ts - pointer.strength) * 0.06;
@@ -249,6 +254,21 @@
     document.addEventListener('visibilitychange', update);
     addEventListener('resize', () => { surface.resize(); if (!running) surface.draw(clock); });
     return surface;
+  }
+
+  // Diagnostics for phones: open the page with #debug to see why the surface is or is not moving.
+  if (location.hash.includes('debug')) {
+    const panel = document.createElement('pre');
+    panel.style.cssText = 'position:fixed;z-index:99;left:8px;bottom:8px;margin:0;padding:8px 10px;background:#000c;color:#ffb347;font:11px/1.4 monospace;border-radius:6px;pointer-events:none;white-space:pre-wrap';
+    document.body.append(panel);
+    const probe = document.createElement('canvas').getContext('webgl2');
+    const report = () => {
+      const lines = ['webgl2: ' + (probe ? 'yes' : 'NO (poster fallback)'), 'reduced motion: ' + (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'YES (still frame only)' : 'no'), 'dpr: ' + devicePixelRatio];
+      document.querySelectorAll('[data-surface]').forEach(e => lines.push(e.dataset.surface + ': ' + (e.classList.contains('fallback') ? 'fallback poster' : e.classList.contains('live') ? 'live' : 'not started')));
+      if (probe) { const info = probe.getExtension('WEBGL_debug_renderer_info'); if (info) lines.push(String(probe.getParameter(info.UNMASKED_RENDERER_WEBGL)).slice(0, 48)); }
+      panel.textContent = lines.join(' | ');
+    };
+    report(); setInterval(report, 1000);
   }
 
   window.AnarkeySurface = { start };
