@@ -34,11 +34,11 @@ Everything works offline. Microphone audio stays on your device. Recordings and 
 _Actual screenshots. No marketing department was harmed in their creation._
 
 <p align="center">
-  <img src="store/screenshots/en/01-home.png" alt="Home" width="150">
-  <img src="store/screenshots/en/02-tuner.png" alt="Tuner" width="150">
-  <img src="store/screenshots/en/03-chords.png" alt="Chords" width="150">
-  <img src="store/screenshots/en/08-metronome.png" alt="Metronome" width="150">
-  <img src="store/screenshots/en/06-recorder.png" alt="Recorder" width="150">
+  <img src="docs/assets/screens/home-en-720.webp" alt="Home" width="150">
+  <img src="docs/assets/screens/tuner-en-720.webp" alt="Tuner" width="150">
+  <img src="docs/assets/screens/chords-en-720.webp" alt="Chords" width="150">
+  <img src="docs/assets/screens/metronome-en-720.webp" alt="Metronome" width="150">
+  <img src="docs/assets/screens/recorder-en-720.webp" alt="Recorder" width="150">
 </p>
 
 ## What does it do?
