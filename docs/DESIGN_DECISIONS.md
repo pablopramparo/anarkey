@@ -133,6 +133,23 @@ has a bilingual "Coming soon on Google Play" placeholder. Once the public listin
 is available, set the `google-play-url` meta tag in `docs/index.html` to its HTTPS
 Google Play app-details URL; the placeholder becomes the download link.
 
+The landing was redesigned (October 2026) around "music in motion". The hero and the closing
+draw a WebGL2 wireframe surface (`docs/assets/surface.js`): one low-resolution mesh deformed in the
+vertex shader, no libraries, no textures, no post-processing, about 30 fps, DPR capped at 1.5,
+paused when off screen or when the tab is hidden, a soft response to the mouse only (not touch).
+`prefers-reduced-motion` draws a single still frame. Without WebGL2 a pre-rendered blurred poster
+(`docs/assets/bg/surface-*.webp`) is used, and it is only downloaded in that case; regenerate it
+when the shader changes. Each tool has its own composition and a full-bleed illustration from
+`design-assets/recursos web` (`docs/assets/bg/`), the tuner as the protagonist, the metronome as
+the calm one. Still buildless: reveal-on-scroll uses `IntersectionObserver`, and all other
+motion is CSS `transform`/`opacity`.
+The phones use one shared frame (`docs/assets/phone-frame.webp`, from
+`design-assets/EMPTY_PHONE.png` without its baked-in shadow) layered over the screenshot in
+CSS. The website screenshots live in `docs/assets/screens/{tuner,recorder,chords,metronome,songs}-{es,en}.webp`,
+taken at the phone's native 1080×2400 (the store set is 2:1 and does not fit the frame), with
+the status and navigation bars left in and the Samsung scroll handle painted out. Do not use a
+`filter` on the masked `.phone`: it draws a faint rectangle behind it.
+
 Prefer small classes, explicit behaviour, tests, few dependencies and data-driven configuration.
 Avoid frameworks for their own sake, abstractions without a second user, and clever code that is
 hard to debug. When a decision changes, mark the old one as superseded and say why, rather than

@@ -136,5 +136,5 @@ settings were restored afterwards.
 - **System bars.** The phone's status bar (clock, notification and microphone indicators) and navigation
   bar were painted over with the app background colour, so nothing from the device shows.
 - **Tuner.** It shows the listening state: a detected note needs a real instrument.
-- **Website.** `docs/assets/{tuner,chords,recorder,metronome}-{es,en}.png` are copies of these files.
-  Replace them together when the interface changes.
+- **Website.** It no longer uses these files: it has its own native-size set in
+  `docs/assets/screens/` (see `docs/DESIGN_DECISIONS.md`).
