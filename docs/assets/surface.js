@@ -45,6 +45,7 @@
   in vec3 vN; in vec3 vW; in float vH; in float vEdge;
   uniform vec3 uCam;
   uniform vec2 uRes;
+  uniform float uCell;   // grid cell size in world units
   uniform float uBias;   // lifts the shading on small screens, where little of the surface is on show
   uniform vec4 uClear;   // visible from x0 to x1 (left ramp), fades out from y0 to y1 (top ramp), in screen units
   out vec4 outColor;
@@ -57,7 +58,7 @@
     float rim = pow(1.0 - clamp(dot(n, v), 0.0, 1.0), 3.0);
 
     // wireframe: grid lines in world space, one pixel wide whatever the distance
-    vec2 g = vW.xz / 0.17;
+    vec2 g = vW.xz / uCell;
     vec2 q = abs(fract(g - 0.5) - 0.5) / fwidth(g);
     float line = (1.0 - clamp(min(q.x, q.y) * 0.8 - 0.1, 0.0, 1.0)) * (1.0 - smoothstep(0.22, 0.6, fwidth(g.x) + fwidth(g.y)));
     float glow = 0.12 + 1.5 * diffuse * diffuse + rim * 0.5 + smoothstep(0.3, 1.0, vH) * 0.5;
@@ -85,7 +86,7 @@
     },
     closing: {
       wide: { eye: [0, 3.0, 5.0], look: [0, -0.6, -4.5], fov: 44, shape: [14, 22, 0.85, 0], clear: [-1, 0, 0.5, 0.78] },
-      narrow: { eye: [0, 3.2, 5.6], look: [0, -0.8, -4], fov: 54, shape: [10, 20, 1.8, 0], freq: 1.6, bias: 0.95, clear: [-1, 0, 0.3, 0.5] },
+      narrow: { eye: [0.4, 3.0, 5.2], look: [0.3, -0.7, -3.8], fov: 58, shape: [10, 20, 1.7, 0.6], freq: 1.5, bias: 0.9, clear: [-1, 0, 0.42, 0.62] },
       time: 3.2
     }
   };
@@ -150,7 +151,7 @@
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 
     const u = name => gl.getUniformLocation(program, name);
-    const uniforms = { vp: u('uVP'), t: u('uT'), shape: u('uShape'), cam: u('uCam'), res: u('uRes'), clear: u('uClear'), pointer: u('uPointer'), freq: u('uFreq'), bias: u('uBias') };
+    const uniforms = { vp: u('uVP'), t: u('uT'), shape: u('uShape'), cam: u('uCam'), res: u('uRes'), clear: u('uClear'), pointer: u('uPointer'), freq: u('uFreq'), bias: u('uBias'), cell: u('uCell') };
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.enable(gl.BLEND);
@@ -201,6 +202,7 @@
       gl.uniform4fv(uniforms.clear, config.clear);
       gl.uniform1f(uniforms.freq, config.freq || 1);
       gl.uniform1f(uniforms.bias, config.bias || 0);
+      gl.uniform1f(uniforms.cell, config.cell || 0.17);
       // ease towards the target so the surface answers softly, and let it settle when the pointer leaves
       pointer.x += (pointer.tx - pointer.x) * 0.12; pointer.z += (pointer.tz - pointer.z) * 0.12;
       pointer.strength += (pointer.ts - pointer.strength) * 0.06;
