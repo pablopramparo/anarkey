@@ -59,7 +59,7 @@
     // wireframe: grid lines in world space, one pixel wide whatever the distance
     vec2 g = vW.xz / 0.17;
     vec2 q = abs(fract(g - 0.5) - 0.5) / fwidth(g);
-    float line = (1.0 - clamp(min(q.x, q.y) - 0.15, 0.0, 1.0)) * (1.0 - smoothstep(0.35, 0.9, fwidth(g.x) + fwidth(g.y)));
+    float line = (1.0 - clamp(min(q.x, q.y) * 0.8 - 0.1, 0.0, 1.0)) * (1.0 - smoothstep(0.22, 0.6, fwidth(g.x) + fwidth(g.y)));
     float glow = 0.12 + 1.5 * diffuse * diffuse + rim * 0.5 + smoothstep(0.3, 1.0, vH) * 0.5;
     float volume = smoothstep(-0.55, 0.85, vH + uBias);          // valleys fall into shadow, crests stay lit
     glow *= 0.01 + 0.99 * volume * volume;
@@ -85,7 +85,7 @@
     },
     closing: {
       wide: { eye: [0, 3.0, 5.0], look: [0, -0.6, -4.5], fov: 44, shape: [14, 22, 0.85, 0], clear: [-1, 0, 0.5, 0.78] },
-      narrow: { eye: [0, 3.2, 5.6], look: [0, -0.8, -4], fov: 54, shape: [10, 20, 2.1, 0], freq: 2.2, bias: 0.5, clear: [-1, 0, 0.3, 0.5] },
+      narrow: { eye: [0, 3.2, 5.6], look: [0, -0.8, -4], fov: 54, shape: [10, 20, 1.8, 0], freq: 1.6, bias: 0.95, clear: [-1, 0, 0.3, 0.5] },
       time: 3.2
     }
   };
