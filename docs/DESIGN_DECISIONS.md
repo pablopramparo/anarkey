@@ -127,11 +127,10 @@ browser tab does not show the app icon's solid background.
 Spanish is the default, with an English switch that also
 changes screenshot language and supports `?lang=en` links. No external fonts,
 tracking, or dependencies are required. Existing privacy-policy URLs stay unchanged.
-The primary links lead to the tools and source repository; no store availability or
-download is advertised without a confirmed release destination. The landing page
-has a bilingual "Coming soon on Google Play" placeholder. Once the public listing
-is available, set the `google-play-url` meta tag in `docs/index.html` to its HTTPS
-Google Play app-details URL; the placeholder becomes the download link.
+The primary links lead to the tools and source repository. The `google-play-url` meta
+tag in `docs/index.html` holds the public Google Play app-details URL
+(`org.anarkey.app`); `site.js` turns the bilingual "Coming soon on Google Play"
+placeholders into download links when it is set to a valid HTTPS Play URL.
 
 The landing was redesigned (October 2026) around "music in motion". The hero and the closing
 draw a WebGL2 wireframe surface (`docs/assets/surface.js`): one low-resolution mesh deformed in the
