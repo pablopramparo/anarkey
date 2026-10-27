@@ -5,6 +5,8 @@ if (playUrl && URL.canParse(playUrl)) {
   if (url.protocol === 'https:' && url.hostname === 'play.google.com' && url.pathname === '/store/apps/details') {
     document.querySelectorAll('[data-google-play]').forEach(link => {
       link.href = url.href;
+      link.target = '_blank';
+      link.rel = 'noopener';
       link.removeAttribute('aria-disabled');
       if (link.hasAttribute('data-short')) return;
       const label = link.querySelector('span');
