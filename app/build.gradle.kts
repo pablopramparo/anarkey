@@ -14,8 +14,8 @@ android {
         applicationId = "org.anarkey.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 19
-        versionName = "0.2.4-prototype"
+        versionCode = 20
+        versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures {
