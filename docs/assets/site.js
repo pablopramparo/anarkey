@@ -6,6 +6,7 @@ if (playUrl && URL.canParse(playUrl)) {
     document.querySelectorAll('[data-google-play]').forEach(link => {
       link.href = url.href;
       link.removeAttribute('aria-disabled');
+      if (link.hasAttribute('data-short')) return;
       const label = link.querySelector('span');
       label.textContent = 'Descargar en Google Play';
       label.dataset.en = 'Get it on Google Play';

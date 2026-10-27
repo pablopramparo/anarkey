@@ -10,6 +10,8 @@ local.properties
 # Keys and local build output: never published
 signing/
 dist/
+*.aab
+*.apk
 
 # Personal recordings and working screenshots (those the docs link to live in docs/screenshots)
 /anarkey-last-audio.wav
